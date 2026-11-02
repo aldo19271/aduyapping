@@ -21,7 +21,7 @@ if (FAVICON_SRC) {
 }
 
 createRoot(document.getElementById('root')).render(
-  <MotionConfig reducedMotion="user">
+  <MotionConfig reducedMotion="never">
     <AppProvider>
       <App />
     </AppProvider>
