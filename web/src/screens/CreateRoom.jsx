@@ -21,7 +21,7 @@ export default function CreateRoom() {
         <Button icon={Plus} loading={state.busy} disabled={invalid} onClick={() => actions.createRoom(settings)}>
           Buat room
         </Button>
-        {invalid ? <p className="note center-text">Room private wajib punya password.</p> : null}
+        {invalid ? <p className="note center-text">wajib diberi password ya beb.</p> : null}
       </div>
     </Screen>
   );
