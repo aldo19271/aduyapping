@@ -1228,13 +1228,6 @@ p {
   color: var(--orange);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-
 /* ============================================================ animasi tambahan */
 
 /* ---- latar bergerak */
@@ -1661,16 +1654,6 @@ p {
   }
   to {
     transform: translate3d(var(--drift), 110vh, 0) rotate(calc(var(--rot) + 540deg));
-  }
-}
-
-/* ---- ketuk-ketuk: gerak berkurang jika perangkat memintanya */
-@media (prefers-reduced-motion: reduce) {
-  .float-letter,
-  .shape,
-  .marquee-track,
-  .confetti i {
-    animation: none !important;
   }
 }
 
