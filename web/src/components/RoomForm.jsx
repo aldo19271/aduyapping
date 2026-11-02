@@ -58,7 +58,7 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
               placeholder={namePlaceholder}
               onChange={(e) => set({ name: e.target.value })}
             />
-            <Row title="Jumlah pemain" hint="Minimal 2, maksimal 8">
+            <Row title="Jumlah pemain" hint="Min 2, maks 8">
               <Stepper value={value.max} min={2} max={8} onChange={(v) => set({ max: v })} />
             </Row>
             <Row title="Room private" hint="Tetap tampil di daftar, tapi wajib password">
@@ -103,7 +103,7 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
             <Row title="Darah per pemain">
               <Stepper value={value.hp} min={10} max={1000} step={10} onChange={(v) => set({ hp: v })} />
             </Row>
-            <Row title="Maks kata dari Gemini" hint="Jumlah kata tiap gelombang">
+            <Row title="Maks kata">
               <Stepper value={value.maxWords} min={50} max={500} step={50} onChange={(v) => set({ maxWords: v })} />
             </Row>
           </motion.div>
