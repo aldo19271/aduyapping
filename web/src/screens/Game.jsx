@@ -6,6 +6,7 @@ import { api } from '../lib/api.js';
 import Avatar from '../components/Avatar.jsx';
 import { BrokenCrown, Burst, Confetti, CountUp } from '../components/fx.jsx';
 import { playSound } from '../lib/sound.js';
+import { ChatButton, ChatSheet } from '../components/Chat.jsx';
 import { Button, HpBar } from '../components/ui.jsx';
 
 function PlayerCard({ p, g, enemy, isTarget, onPick }) {
@@ -199,7 +200,7 @@ export default function Game() {
 
   // fokus ke kolom ketik saat mulai
   useEffect(() => {
-    if (g && g.phase === 'playing' && inputRef.current) inputRef.current.focus();
+    if (g && g.phase === 'playing' && inputRef.current && !state.chat.open) inputRef.current.focus();
   }, [g && g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // layar bergetar + kilau merah + getar HP saat kamu kena serang
@@ -298,7 +299,7 @@ export default function Game() {
     <motion.main
       className="screen game"
       animate={shake}
-      onClick={() => inputRef.current && playing && inputRef.current.focus()}
+      onClick={() => inputRef.current && playing && !state.chat.open && inputRef.current.focus()}
     >
 
       <div className="game-top">
@@ -427,6 +428,7 @@ export default function Game() {
       </div>
       <div className="game-top">
         <span className="chip">Tim kamu</span>
+        <ChatButton variant="icon" />
       </div>
 
       <motion.div className={`typebox ${bad ? 'bad' : ''}`} animate={boxCtl}>
@@ -447,6 +449,7 @@ export default function Game() {
       </motion.div>
 
     </motion.main>
+    <ChatSheet title="Chat" />
     {g.result ? <Result g={g} user={state.user} onBack={actions.backToRoom} /> : null}
     </>
   );

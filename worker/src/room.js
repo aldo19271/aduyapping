@@ -15,6 +15,9 @@ const RESET_AFTER_END_MS = 6_000;
 const LOBBY_PING_MS = 25_000;
 const COINS_WIN = 10;
 const COINS_LOSE = 5;
+const CHAT_MAX_LEN = 120; // panjang pesan chat
+const CHAT_GAP_MS = 350; // jeda minimal antar pesan chat per pemain
+const CHAT_KEEP = 40; // jumlah pesan terakhir yang disimpan untuk pemain yang baru masuk
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -37,6 +40,8 @@ export class Room extends DurableObject {
     this.status = 'lobby'; // lobby | loading | countdown | playing | finished
     this.orderSeq = 0;
     this.words = [];
+    this.chat = [];
+    this.chatSeq = 0;
     this.refilling = false;
     this.runId = 0;
     this.pingTimer = null;
@@ -174,6 +179,8 @@ export class Room extends DurableObject {
         case 'word':
         case 'skip':
           return this.onWord(p, m);
+        case 'chat':
+          return this.onChat(p, m);
         default:
       }
     } catch (err) {
@@ -199,6 +206,7 @@ export class Room extends DurableObject {
         }
       }
       this.send(ws, { type: 'joined', youId: u.id, room: this.snapshot() });
+      this.send(ws, { type: 'chat_history', messages: this.chat });
       if (this.status === 'loading' || this.status === 'countdown' || this.status === 'playing') {
         this.sendGameStart(existing, true);
       }
@@ -249,6 +257,7 @@ export class Room extends DurableObject {
     });
     this.startPing();
     this.send(ws, { type: 'joined', youId: u.id, room: this.snapshot() });
+    this.send(ws, { type: 'chat_history', messages: this.chat });
     this.broadcastRoom();
     this.pushLobby();
   }
@@ -284,6 +293,23 @@ export class Room extends DurableObject {
     p.ready = true;
     const run = this.runId;
     if (this.activePlayers().every((x) => x.ready)) this.startCountdown(run);
+  }
+
+  /** Chat room: sama di lobi dan saat pertandingan. Dibersihkan di server, disiarkan ke semua pemain. */
+  onChat(p, m) {
+    const text = String(m.text ?? '')
+      .replace(/[\u0000-\u001f\u007f]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, CHAT_MAX_LEN);
+    if (!text) return;
+    const now = Date.now();
+    if (now - (p.lastChatAt || 0) < CHAT_GAP_MS) return;
+    p.lastChatAt = now;
+    const msg = { type: 'chat', id: ++this.chatSeq, from: p.id, name: p.name, text, ts: now };
+    this.chat.push(msg);
+    if (this.chat.length > CHAT_KEEP) this.chat.shift();
+    this.broadcast(msg);
   }
 
   onTarget(p, m) {

@@ -152,6 +152,13 @@ export function Switch({ checked, onChange, label }) {
 
 export function Stepper({ value, min, max, step = 1, onChange }) {
   const set = (v) => onChange(Math.min(max, Math.max(min, v)));
+  const [draft, setDraft] = useState(null); // null = tidak sedang mengetik
+  const commit = () => {
+    if (draft === null) return;
+    const n = parseInt(draft, 10);
+    if (Number.isFinite(n)) set(n);
+    setDraft(null);
+  };
   return (
     <div className="stepper">
       <motion.button
@@ -164,19 +171,29 @@ export function Stepper({ value, min, max, step = 1, onChange }) {
       >
         <Minus size={16} strokeWidth={3} />
       </motion.button>
-      <div className="stepper-val">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span
-            key={value}
-            initial={{ y: -12, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 12, opacity: 0 }}
-            transition={{ duration: 0.16 }}
-          >
-            {value}
-          </motion.span>
-        </AnimatePresence>
-      </div>
+      <input
+        className="stepper-input"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="off"
+        aria-label="Nilai"
+        maxLength={String(max).length}
+        value={draft ?? String(value)}
+        onFocus={(e) => {
+          setDraft(String(value));
+          const el = e.target;
+          requestAnimationFrame(() => el.select());
+        }}
+        onChange={(e) => setDraft(e.target.value.replace(/\D/g, ''))}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.currentTarget.blur();
+          }
+        }}
+      />
       <motion.button
         type="button"
         className="icon-btn sm"

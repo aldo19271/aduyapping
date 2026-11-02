@@ -19,7 +19,10 @@ const initial = {
   busy: false,
   passwordPrompt: null,
   startSeq: 0,
+  chat: { messages: [], unread: 0, open: false },
 };
+
+const EMPTY_CHAT = { messages: [], unread: 0, open: false };
 
 function gameReducer(s, m) {
   const g = s.game;
@@ -108,15 +111,28 @@ function reducer(s, a) {
     case 'password_prompt':
       return { ...s, passwordPrompt: a.prompt, busy: false };
     case 'joined':
-      return { ...s, room: a.room, youId: a.youId, screen: 'room', busy: false, game: null, passwordPrompt: null };
+      return { ...s, room: a.room, youId: a.youId, screen: 'room', busy: false, game: null, passwordPrompt: null, chat: EMPTY_CHAT };
     case 'room':
       return s.room ? { ...s, room: a.room } : s;
     case 'left':
-      return { ...s, room: null, game: null, busy: false, screen: s.screen === 'landing' ? 'landing' : 'join' };
+      return { ...s, room: null, game: null, busy: false, chat: EMPTY_CHAT, screen: s.screen === 'landing' ? 'landing' : 'join' };
     case 'aborted':
       return { ...s, game: null, screen: s.room ? 'room' : 'join' };
     case 'back_to_room':
       return { ...s, game: null, screen: s.room ? 'room' : 'join' };
+    case 'chat_msg': {
+      const c = s.chat;
+      if (c.messages.some((x) => x.id === a.msg.id)) return s;
+      const mine = a.msg.from === s.youId;
+      return {
+        ...s,
+        chat: { ...c, messages: [...c.messages, a.msg].slice(-60), unread: c.open || mine ? c.unread : c.unread + 1 },
+      };
+    }
+    case 'chat_history':
+      return { ...s, chat: { ...s.chat, messages: a.messages.slice(-60), unread: 0 } };
+    case 'chat_open':
+      return { ...s, chat: { ...s.chat, open: a.open, unread: a.open ? 0 : s.chat.unread } };
     case 'next_word':
       return s.game ? { ...s, game: { ...s.game, idx: s.game.idx + 1 } } : s;
     case 'game_event':
@@ -161,6 +177,10 @@ export function AppProvider({ children }) {
           case 'aborted':
             dispatch({ type: 'toast', text: m.message });
             return dispatch({ type: 'aborted' });
+          case 'chat':
+            return dispatch({ type: 'chat_msg', msg: m });
+          case 'chat_history':
+            return dispatch({ type: 'chat_history', messages: Array.isArray(m.messages) ? m.messages : [] });
           case 'settings_saved':
             return dispatch({ type: 'toast', text: 'Pengaturan disimpan.' });
           case 'error':
@@ -262,6 +282,8 @@ export function AppProvider({ children }) {
       },
       saveSettings: (settings) => net().sendRoom({ type: 'update_settings', settings }),
       startGame: () => net().sendRoom({ type: 'start' }),
+      sendChat: (text) => net().sendRoom({ type: 'chat', text }),
+      setChatOpen: (open) => dispatch({ type: 'chat_open', open }),
       ready: () => net().sendRoom({ type: 'ready' }),
       sendWord: (i, w) => net().sendRoom({ type: 'word', i, w }),
       sendSkip: (i) => net().sendRoom({ type: 'skip', i }),

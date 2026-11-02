@@ -161,15 +161,16 @@ export default function Landing() {
                 {mode === 'login' ? 'Masuk' : 'Daftar'}
               </Button>
               {mode === 'login' ? (
-                <Button
-                  variant="quiet"
+                <button
+                  type="button"
+                  className="forgot-link"
                   onClick={() => {
                     setMode('forgot');
                     setError('');
                   }}
                 >
                   Lupa password?
-                </Button>
+                </button>
               ) : null}
               <Button
                 variant="quiet"

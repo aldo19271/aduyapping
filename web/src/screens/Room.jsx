@@ -5,6 +5,7 @@ import { useApp } from '../store.jsx';
 import Avatar from '../components/Avatar.jsx';
 import RoomForm from '../components/RoomForm.jsx';
 import { Dots } from '../components/fx.jsx';
+import { ChatButton, ChatSheet } from '../components/Chat.jsx';
 import { Button, Screen, TopBar } from '../components/ui.jsx';
 
 export default function Room() {
@@ -142,6 +143,9 @@ export default function Room() {
       </section>
 
       <div className="sticky-actions">
+        <div className="chat-row">
+          <ChatButton variant="pill" />
+        </div>
         {isHost ? (
           <>
             <Button variant="ghost" icon={Settings} onClick={openEdit} disabled={loading}>
@@ -164,6 +168,7 @@ export default function Room() {
           <p className="note center-text">Menunggu ketua room memulai game <Dots /></p>
         )}
       </div>
+      <ChatSheet title="Chat room" />
     </Screen>
   );
 }

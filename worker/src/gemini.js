@@ -43,13 +43,24 @@ export async function generateWords(env, n) {
         signal: ctrl.signal,
       },
     );
-    if (!res.ok) throw new Error(`gemini ${res.status}`);
+    if (!res.ok) {
+      let detail = '';
+      try {
+        detail = (await res.text()).replace(/\s+/g, ' ').slice(0, 200);
+      } catch {
+        /* abaikan */
+      }
+      throw new Error(`gemini ${res.status} ${detail}`);
+    }
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '[]';
     let parsed = JSON.parse(text);
     if (!Array.isArray(parsed)) parsed = Object.values(parsed).flat();
     let words = cleanList(parsed);
-    if (words.length >= n) return { words: shuffle(words).slice(0, n), source: 'gemini' };
+    if (words.length >= n) {
+      console.log('Kata dari Gemini:', words.length);
+      return { words: shuffle(words).slice(0, n), source: 'gemini' };
+    }
     if (words.length >= Math.ceil(n * 0.4)) {
       const extra = fallbackWords(n * 2).filter((w) => !words.includes(w));
       words = words.concat(extra).slice(0, n);
