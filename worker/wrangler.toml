@@ -27,3 +27,21 @@ ALLOWED_ORIGINS = ""
 
 # Secrets (isi lewat dashboard Cloudflare > Worker > Settings > Variables and Secrets, tipe Secret):
 #   JWT_SECRET, GAME_SERVER_SECRET, GEMINI_API_KEY
+[observability]
+enabled = false
+head_sampling_rate = 1
+redact_query_string = false
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
+
+[observability.issues]
+enabled = true
