@@ -137,8 +137,8 @@ export default function Menu() {
       </motion.div>
       <FabFan
         items={[
-          { id: 'settings', label: 'Pengaturan', icon: Settings, onClick: () => actions.go('settings') },
-          { id: 'about', label: 'About', icon: Info, onClick: () => actions.go('about') },
+          { id: 'settings', icon: Settings, onClick: () => actions.go('settings') },
+          { id: 'about', icon: Info, onClick: () => actions.go('about') },
         ]}
       />
       <Marquee words={WORDS} />
