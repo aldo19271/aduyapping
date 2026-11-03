@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { LogOut, Volume2, VolumeX } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import { Button, Field, PasswordField, Screen, Switch, TopBar } from '../components/ui.jsx';
 import { useSound } from '../lib/sound.js';
@@ -114,6 +114,9 @@ export default function SettingsScreen() {
         <Switch checked={soundOn} onChange={setSoundOn} label="Efek suara" />
       </motion.div>
       {state.user ? <AccountForm /> : null}
+      <Button variant="ghost" icon={LogOut} className="logout-btn" onClick={actions.logout}>
+        {state.user ? 'Keluar akun' : 'Kembali ke awal'}
+      </Button>
     </Screen>
   );
 }

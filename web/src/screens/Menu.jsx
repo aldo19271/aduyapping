@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Coins, DoorOpen, LogOut, Lock, PlusSquare, ShoppingBag, Trophy, Settings, ShieldCheck } from 'lucide-react';
+import { Coins, DoorOpen, Info, Lock, PlusSquare, ShoppingBag, Trophy, Settings, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import Avatar from '../components/Avatar.jsx';
+import FabFan from '../components/FabFan.jsx';
 import { CountUp, Marquee, useRipple } from '../components/fx.jsx';
 import { Screen, itemVariants, listVariants } from '../components/ui.jsx';
 import { DEFAULT_SKIN } from '../../config/skins.js';
@@ -133,33 +134,13 @@ export default function Menu() {
             Maklum Server gratisan tunggu beberapa detik buat nyala. Tunggu sampai status berubah menjadi Terhubung. Sabar ya bro 
           </p>
         ) : null}
-        <div className="foot-row">
-          <motion.button
-            type="button"
-            className="about-pill"
-            onClick={() => actions.go('about')}
-            animate={{ y: [0, -3, 0], transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } }}
-            whileHover={{ rotate: -5, scale: 1.1 }}
-            whileTap={{ scale: 0.88 }}
-          >
-            about
-          </motion.button>
-          <motion.button type="button" className="link" onClick={actions.logout} whileHover={{ x: 3 }} whileTap={{ scale: 0.92 }}>
-            <LogOut size={16} strokeWidth={2.5} /> {user ? 'Keluar akun' : 'Kembali ke awal'}
-          </motion.button>
-          <motion.button
-            type="button"
-            className="settings-btn"
-            aria-label="Pengaturan"
-            onClick={() => actions.go('settings')}
-            whileHover={{ rotate: 90, scale: 1.12 }}
-            whileTap={{ scale: 0.85, rotate: 180 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 14 }}
-          >
-            <Settings size={20} strokeWidth={2.5} />
-          </motion.button>
-        </div>
       </motion.div>
+      <FabFan
+        items={[
+          { id: 'settings', label: 'Pengaturan', icon: Settings, onClick: () => actions.go('settings') },
+          { id: 'about', label: 'About', icon: Info, onClick: () => actions.go('about') },
+        ]}
+      />
       <Marquee words={WORDS} />
     </Screen>
   );
