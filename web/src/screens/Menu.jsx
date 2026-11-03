@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Coins, DoorOpen, LogOut, Lock, PlusSquare, ShoppingBag, Trophy, Settings } from 'lucide-react';
+import { Coins, DoorOpen, LogOut, Lock, PlusSquare, ShoppingBag, Trophy, Settings, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import Avatar from '../components/Avatar.jsx';
 import { CountUp, Marquee, useRipple } from '../components/fx.jsx';
@@ -118,6 +118,11 @@ export default function Menu() {
         <Tile i={1} icon={DoorOpen} title="Join Room" sub="Masuk ke room yang ada" onClick={() => actions.go('join')} />
         <Tile i={2} icon={ShoppingBag} title="Shop" sub="Beli skin dengan koin" locked={!user} onClick={() => needLogin('shop')} />
         <Tile i={3} icon={Trophy} title="Leaderboard" sub="Top 25 win dan koin" locked={!user} onClick={() => needLogin('leaderboard')} />
+        {user && user.admin ? (
+          <div className="tile-wide">
+            <Tile i={4} icon={ShieldCheck} title="Admin" sub="Kelola akun dan mailbox feedback" onClick={() => actions.go('admin')} />
+          </div>
+        ) : null}
       </motion.div>
 
       <Tip />

@@ -15,11 +15,13 @@ export default async function handler(req, res) {
     }
     const sql = getSql();
     const rows = await sql`
-      select id, username, email, password_hash, coins, wins, equipped_skin
+      select id, username, email, password_hash, coins, wins, equipped_skin, is_admin, banned
       from users where lower(username) = lower(${username}) limit 1`;
     const row = rows[0];
     const ok = await bcrypt.compare(password, row ? row.password_hash : await getDummyHash());
     if (!row || !ok) return send(res, 401, { error: 'Username atau password salah.' });
+
+    if (row.banned) return send(res, 403, { error: 'Akun ini diblokir admin.' });
 
     const skins = await sql`select skin_id from user_skins where user_id = ${row.id}`;
     return send(res, 200, {

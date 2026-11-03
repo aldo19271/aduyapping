@@ -58,6 +58,7 @@ export const api = {
   shop: () => request('/shop'),
   buy: (skinId) => request('/shop/buy', { method: 'POST', body: { skinId } }),
   equip: (skinId) => request('/shop/equip', { method: 'POST', body: { skinId } }),
-  leaderboard: () => request('/leaderboard'),
+  leaderboard: (bust) => request('/leaderboard' + (bust ? '?t=' + bust : '')),
+  admin: (body) => request('/admin', { method: 'POST', body }),
   profile: (name) => request('/profile?name=' + encodeURIComponent(name)),
 };

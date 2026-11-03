@@ -46,6 +46,7 @@ export function publicUser(row, ownedSkins) {
     id: row.id,
     name: row.username,
     ...(row.email !== undefined ? { email: row.email || null } : {}),
+    ...(row.is_admin ? { admin: true } : {}),
     coins: row.coins,
     wins: row.wins,
     skin: normalizeSkin(row.equipped_skin),

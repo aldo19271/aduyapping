@@ -44,7 +44,7 @@ export default async function handler(req, res) {
                          email = coalesce(${newEmail}::text, email),
                          password_hash = coalesce(${hash}::text, password_hash)
         where id = ${auth.sub}
-        returning id, username, email, coins, wins, equipped_skin`;
+        returning id, username, email, coins, wins, equipped_skin, is_admin`;
     } catch (err) {
       if (err && err.code === '23505') return send(res, 409, { error: 'Username atau Gmail sudah dipakai.' });
       throw err;

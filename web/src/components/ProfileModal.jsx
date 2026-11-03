@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Coins, Trophy, X } from 'lucide-react';
+import { Ban, Coins, Trophy, X } from 'lucide-react';
+import { useApp } from '../store.jsx';
 import { api } from '../lib/api.js';
 import Avatar from './Avatar.jsx';
 import { Burst, CountUp } from './fx.jsx';
@@ -31,7 +32,11 @@ function Stat({ icon: Icon, label, value, delay }) {
 }
 
 /** Profil pemain. target = { name, rank } atau null. */
-export default function ProfileModal({ target, onClose }) {
+export default function ProfileModal({ target, onClose, onBanned }) {
+  const { state, actions } = useApp();
+  const isAdmin = !!(state.user && state.user.admin);
+  const [askBan, setAskBan] = useState(false);
+  const [banning, setBanning] = useState(false);
   const [data, setData] = useState(null);
   const [err, setErr] = useState('');
   const name = target && target.name;
@@ -41,6 +46,7 @@ export default function ProfileModal({ target, onClose }) {
     let alive = true;
     setData(null);
     setErr('');
+    setAskBan(false);
     api
       .profile(name)
       .then((r) => alive && setData(r.profile))
@@ -49,6 +55,21 @@ export default function ProfileModal({ target, onClose }) {
       alive = false;
     };
   }, [name]);
+
+  const doBan = async () => {
+    setBanning(true);
+    try {
+      await api.admin({ action: 'user_ban', name, banned: true });
+      actions.toast(`${name} diban dari leaderboard.`);
+      if (onBanned) onBanned(name);
+      onClose();
+    } catch (e) {
+      actions.toast(e.message);
+    } finally {
+      setBanning(false);
+      setAskBan(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -88,6 +109,21 @@ export default function ProfileModal({ target, onClose }) {
             >
               <X size={22} strokeWidth={3} />
             </motion.button>
+
+            {isAdmin && name !== (state.user && state.user.name) ? (
+              <motion.div className="pf-ban-wrap" initial={{ scale: 0, rotate: 90 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.2 }}>
+                {askBan ? (
+                  <span className="pf-ban-ask">
+                    <button type="button" className="pf-ban yes" disabled={banning} onClick={doBan}>Yakin ban?</button>
+                    <button type="button" className="pf-ban" onClick={() => setAskBan(false)}>Batal</button>
+                  </span>
+                ) : (
+                  <motion.button type="button" className="pf-ban" onClick={() => setAskBan(true)} whileHover={{ rotate: -8, scale: 1.08 }} whileTap={{ scale: 0.82, y: 3 }}>
+                    <Ban size={16} strokeWidth={3} /> Ban?
+                  </motion.button>
+                )}
+              </motion.div>
+            ) : null}
 
             <motion.div
               className="pf-avatar"

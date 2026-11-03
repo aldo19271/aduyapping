@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Camera, Code, Link as LinkIcon } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowUpRight, Camera, Code, Link as LinkIcon, MessageSquareText, Lock } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import LogoMark from '../components/logoabout.jsx';
 import { Typewriter, useRipple } from '../components/fx.jsx';
 import { Screen, TopBar, itemVariants, listVariants } from '../components/ui.jsx';
+import FeedbackModal from '../components/FeedbackModal.jsx';
 import { ABOUT } from '../../config/about.js';
 
 const ICONS = { camera: Camera, code: Code, link: LinkIcon };
@@ -43,8 +45,36 @@ function LinkTile({ item, i }) {
   );
 }
 
+function FeedbackTile({ i, locked, onClick }) {
+  const [down, ripples] = useRipple();
+  return (
+    <motion.div variants={itemVariants}>
+      <motion.button
+        type="button"
+        className={`tile link-tile ${locked ? 'locked' : ''}`}
+        onClick={onClick}
+        onPointerDown={down}
+        animate={{ y: [0, -4, 0], transition: { duration: 3 + i * 0.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 } }}
+        variants={{ hover: { y: -8, rotate: -1.4, scale: 1.03, transition: { type: 'spring', stiffness: 400, damping: 18 } } }}
+        whileHover="hover"
+        whileTap={{ scale: 0.93, y: 2 }}
+      >
+        {ripples}
+        <motion.span className="tile-icon" variants={{ hover: { rotate: [0, -14, 14, -8, 0], scale: 1.18 } }} transition={{ duration: 0.5 }}>
+          {locked ? <Lock size={22} strokeWidth={2.5} /> : <MessageSquareText size={24} strokeWidth={2.5} />}
+        </motion.span>
+        <span className="tile-text">
+          <strong>Feedback</strong>
+          <small>{locked ? 'Login dulu' : 'Kirim saran ke admin'}</small>
+        </span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
 export default function About() {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
+  const [fb, setFb] = useState(false);
   return (
     <Screen>
       <TopBar title="About" onBack={() => actions.go('menu')} />
@@ -85,7 +115,13 @@ export default function About() {
         {ABOUT.links.map((l, i) => (
           <LinkTile key={l.id} item={l} i={i} />
         ))}
+        <FeedbackTile
+          i={ABOUT.links.length}
+          locked={!state.user}
+          onClick={() => (state.user ? setFb(true) : actions.toast('Login dulu biar bisa kirim feedback.'))}
+        />
       </motion.div>
+      <FeedbackModal open={fb} onClose={() => setFb(false)} />
     </Screen>
   );
 }

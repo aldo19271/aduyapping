@@ -11,6 +11,7 @@ import Leaderboard from './screens/Leaderboard.jsx';
 import Room from './screens/Room.jsx';
 import Game from './screens/Game.jsx';
 import About from './screens/About.jsx';
+import Admin from './screens/Admin.jsx';
 import SettingsScreen from './screens/Settings.jsx';
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
 
   let screen = state.screen;
   if ((screen === 'shop' || screen === 'leaderboard') && !state.user) screen = 'menu';
+  if (screen === 'admin' && !(state.user && state.user.admin)) screen = 'menu';
   if (screen === 'room' && !state.room) screen = 'menu';
   if (screen === 'game' && !state.game) screen = state.room ? 'room' : 'menu';
 
@@ -39,6 +41,7 @@ export default function App() {
     room: <Room key="room" />,
     game: <Game key="game" />,
     about: <About key="about" />,
+    admin: <Admin key="admin" />,
     settings: <SettingsScreen key="settings" />,
   };
 

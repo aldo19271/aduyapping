@@ -8,8 +8,9 @@ export default async function handler(req, res) {
     if (!auth) return send(res, 401, { error: 'Belum login.' });
     const sql = getSql();
     const rows = await sql`
-      select id, username, email, coins, wins, equipped_skin from users where id = ${auth.sub} limit 1`;
+      select id, username, email, coins, wins, equipped_skin, is_admin, banned from users where id = ${auth.sub} limit 1`;
     if (rows.length === 0) return send(res, 401, { error: 'Akun tidak ditemukan.' });
+    if (rows[0].banned) return send(res, 401, { error: 'Akun ini diblokir admin.' });
     const skins = await sql`select skin_id from user_skins where user_id = ${auth.sub}`;
     return send(res, 200, {
       token: signUser(rows[0]),

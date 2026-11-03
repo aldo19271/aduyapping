@@ -58,16 +58,18 @@ export default function Leaderboard() {
   const [err, setErr] = useState('');
   const [selected, setSelected] = useState(null);
 
+  const [reload, setReload] = useState(0);
+
   useEffect(() => {
     let alive = true;
     api
-      .leaderboard()
+      .leaderboard(reload ? Date.now() : undefined)
       .then((r) => alive && setData(r))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [reload]);
 
   const rows = data ? data[tab === 'wins' ? 'wins' : 'coins'] : [];
   const max = rows.reduce((m, r) => Math.max(m, r.value), 1);
@@ -105,7 +107,7 @@ export default function Leaderboard() {
           />
         ))}
       </motion.ol>
-      <ProfileModal target={selected} onClose={() => setSelected(null)} />
+      <ProfileModal target={selected} onClose={() => setSelected(null)} onBanned={() => setReload((n) => n + 1)} />
     </Screen>
   );
 }
