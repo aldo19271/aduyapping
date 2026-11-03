@@ -115,7 +115,7 @@ export default function SettingsScreen() {
       </motion.div>
       {state.user ? <AccountForm /> : null}
       <Button variant="ghost" icon={LogOut} className="logout-btn" onClick={actions.logout}>
-        {state.user ? 'Keluar akun' : 'Kembali ke awal'}
+        {state.user ? 'Log Out' : 'Log Out'}
       </Button>
     </Screen>
   );
