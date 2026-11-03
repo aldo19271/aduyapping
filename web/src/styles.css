@@ -2298,4 +2298,4 @@ p {
   font-size: 12px; font-weight: 800; color: #f3f3f3; pointer-events: none;
 }
 .fab-item:nth-of-type(2) .fab-label { right: auto; left: 50%; top: -22px; transform: translateX(-50%); }
-.logout-btn { margin-top: 4px; border-color: #c0392b !important; color: #e0675b !important; }
+.logout-btn { margin-top: 8px; border-color: #c0392b !important; color: #e0675b !important; }
