@@ -9,6 +9,19 @@ import { playSound } from '../lib/sound.js';
 import { ChatButton, ChatSheet } from '../components/Chat.jsx';
 import { Button, HpBar } from '../components/ui.jsx';
 
+function MatchTimer({ end }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!end) return undefined;
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, [end]);
+  if (!end) return null;
+  const sec = Math.max(0, Math.ceil((end - now) / 1000));
+  const txt = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+  return <span className={`chip match-timer ${sec <= 30 ? 'low' : ''}`}>{txt}</span>;
+}
+
 function PlayerCard({ p, g, enemy, isTarget, onPick, style }) {
   const hit = g.lastHit && g.lastHit.to === p.id ? g.lastHit : null;
   const pickable = enemy && p.alive && !g.spectator;
@@ -27,7 +40,7 @@ function PlayerCard({ p, g, enemy, isTarget, onPick, style }) {
       transition={{ type: 'spring', stiffness: 380, damping: 20 }}
     >
       <div className="pcard-avatar">
-        <Avatar skin={p.skin} size={54} dead={!p.alive} hits={p.hits} />
+        <Avatar skin={p.skin} size={54} dead={!p.alive} hits={p.hits} plate={false} />
         <Burst fire={p.alive ? 0 : 1} count={12} radius={56} />
         <AnimatePresence>
           {hit ? (
@@ -73,7 +86,7 @@ function Result({ g, onBack, user }) {
   const tname = (t) => (g.teamNames && g.teamNames[t - 1]) || `Tim ${t}`;
   const winner = r.players.find((p) => p.team === r.winnerTeam);
   const groups = solo
-    ? [...r.players].sort((a, b) => (a.team === r.winnerTeam ? -1 : b.team === r.winnerTeam ? 1 : b.words - a.words)).map((p) => p.team)
+    ? r.players.map((p) => p.team)
     : [myTeam, myTeam === 1 ? 2 : 1];
 
   useEffect(() => {
@@ -336,6 +349,7 @@ export default function Game() {
     >
 
       <div className="game-top">
+        <MatchTimer end={g.timeEnd} />
         {solo ? (
           <span className="chip">{spec ? 'Menonton' : 'Solo'}</span>
         ) : (

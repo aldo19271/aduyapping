@@ -44,6 +44,8 @@ function gameReducer(s, m) {
           targetId: m.targetId || null,
           countdown: null,
           waiting: false,
+          timerMs: m.remainingMs || null,
+          timeEnd: m.phase === 'playing' && m.remainingMs ? Date.now() + m.remainingMs : null,
           mode: m.settings.mode || 'team',
           teamNames: m.settings.teamNames || ['Tim Merah', 'Tim Biru'],
           spectator: !!m.spectator || !m.players.some((p) => p.id === m.youId),
@@ -58,7 +60,7 @@ function gameReducer(s, m) {
     case 'countdown':
       return g ? { ...s, game: { ...g, phase: 'countdown', countdown: m.n } } : s;
     case 'go':
-      return g ? { ...s, game: { ...g, phase: 'playing', countdown: null } } : s;
+      return g ? { ...s, game: { ...g, phase: 'playing', countdown: null, timeEnd: m.remainingMs ? Date.now() + m.remainingMs : null } } : s;
     case 'hit': {
       const p = g && g.players[m.to];
       if (!p) return s;

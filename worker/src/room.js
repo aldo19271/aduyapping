@@ -487,6 +487,7 @@ export class Room extends DurableObject {
       p.left = true;
       p.alive = false;
       p.hp = 0;
+      p.points = 0;
     } else {
       this.players.delete(id);
     }
@@ -514,6 +515,7 @@ export class Room extends DurableObject {
 
   destroyRoom() {
     this.runId++;
+    clearTimeout(this.matchTimer);
     clearTimeout(this.readyTimer);
     clearTimeout(this.resetTimer);
     clearInterval(this.pingTimer);
@@ -545,7 +547,9 @@ export class Room extends DurableObject {
         p.slot = i;
       });
     }
+    this.teamSizes = { 1: order.filter((p) => p.team === 1).length, 2: order.filter((p) => p.team === 2).length };
     order.forEach((p) => {
+      p.points = 0;
       p.hp = this.settings.hp;
       p.alive = true;
       p.idx = 0;
@@ -576,7 +580,41 @@ export class Room extends DurableObject {
     }));
   }
 
+  timerMs() {
+    return this.settings.timerOn ? this.settings.timerMin * 60_000 : 0;
+  }
+
+  /** Waktu habis sebelum ada pemenang: tentukan dari poin (solo) atau jumlah anggota hidup (team). */
+  timeUp(run) {
+    if (run !== this.runId || this.status !== 'playing') return;
+    this.endGame(this.timeWinner(), 'time');
+  }
+
+  timeWinner() {
+    const act = this.activePlayers();
+    if (this.settings.mode === 'solo') {
+      let best = 0;
+      let top = [];
+      for (const p of act) {
+        const pts = p.alive ? p.points || 0 : 0;
+        if (pts > best) {
+          best = pts;
+          top = [p];
+        } else if (pts === best && pts > 0) top.push(p);
+      }
+      return top.length === 1 ? top[0].team : null;
+    }
+    // team: bandingkan anggota hidup. Jumlah tim yang lebih besar (room ganjil) dianggap sama dengan lawan.
+    const sizes = this.teamSizes || { 1: 0, 2: 0 };
+    const minSize = Math.min(sizes[1], sizes[2]);
+    const eff = (t) => Math.min(act.filter((p) => p.team === t && p.alive).length, minSize);
+    const a = eff(1);
+    const b = eff(2);
+    return a === b ? null : a > b ? 1 : 2;
+  }
+
   sendGameStart(p, resume) {
+    const remaining = this.status === 'playing' && this.endsAt ? Math.max(0, this.endsAt - Date.now()) : this.timerMs() || null;
     const target = this.status === 'playing' && p.alive ? this.resolveTarget(p) : null;
     this.send(p.ws, {
       type: 'game_start',
@@ -591,6 +629,7 @@ export class Room extends DurableObject {
         teamNames: this.settings.teamNames,
       },
       spectator: !!p.spec,
+      remainingMs: remaining,
       youId: p.id,
       targetId: target ? target.id : null,
       players: this.gamePlayers(),
@@ -611,7 +650,11 @@ export class Room extends DurableObject {
       if (run !== this.runId || this.status !== 'countdown') return;
     }
     this.status = 'playing';
-    this.broadcast({ type: 'go' });
+    const ms = this.timerMs();
+    this.endsAt = ms ? Date.now() + ms : 0;
+    clearTimeout(this.matchTimer);
+    if (ms) this.matchTimer = setTimeout(() => this.timeUp(run), ms);
+    this.broadcast({ type: 'go', remainingMs: ms || null });
   }
 
   resolveTarget(p) {
@@ -642,7 +685,12 @@ export class Room extends DurableObject {
     const t = this.resolveTarget(p);
     if (!t) return;
     t.hp = Math.max(0, t.hp - this.settings.damage);
-    if (t.hp === 0) t.alive = false;
+    p.points = (p.points || 0) + 1; // poin damage (disembunyikan dari pemain)
+    if (t.hp === 0) {
+      t.alive = false;
+      t.points = 0; // mati: poin hangus
+      p.points += 5; // bonus membunuh
+    }
     this.broadcast({ type: 'hit', from: p.id, to: t.id, dmg: this.settings.damage, hp: t.hp, alive: t.alive });
     if (!t.alive) this.checkWin();
   }
@@ -677,6 +725,7 @@ export class Room extends DurableObject {
 
   abortToLobby(message) {
     this.runId++;
+    clearTimeout(this.matchTimer);
     clearTimeout(this.readyTimer);
     this.status = 'lobby';
     for (const [id, p] of [...this.players]) {
@@ -700,31 +749,41 @@ export class Room extends DurableObject {
     p.alive = true;
     p.idx = 0;
     p.words = 0;
+    p.points = 0;
     p.ready = false;
     p.targetId = null;
   }
 
-  endGame(winner) {
+  endGame(winner, reason = 'last') {
     if (this.status !== 'playing') return;
     this.status = 'finished';
     this.runId++;
+    clearTimeout(this.matchTimer);
 
-    const mvp = {};
     const solo = this.settings.mode === 'solo';
-    const pick = (list) => {
-      let best = 0;
-      let who = null;
-      for (const p of list) {
-        if (p.words > best) {
-          best = p.words;
-          who = p;
+    let ordered = this.allPlayers();
+    const mvp = {};
+    if (solo) {
+      // urut: poin tertinggi (MVP) sampai terendah; poin tidak dikirim ke pemain
+      const pts = (p) => (p.alive ? p.points || 0 : 0);
+      ordered = [...ordered].sort(
+        (x, y) => pts(y) - pts(x) || (y.team === winner) - (x.team === winner) || y.words - x.words,
+      );
+      if (ordered[0] && pts(ordered[0]) > 0) mvp[ordered[0].team] = ordered[0].id;
+    } else {
+      for (const t of [1, 2]) {
+        let best = 0;
+        let who = null;
+        for (const p of this.activePlayers().filter((x) => x.team === t)) {
+          if (p.words > best) {
+            best = p.words;
+            who = p;
+          }
         }
+        if (who) mvp[t] = who.id;
       }
-      if (who) mvp[who.team] = who.id;
-    };
-    if (solo) pick(this.activePlayers());
-    else for (const t of [1, 2]) pick(this.activePlayers().filter((p) => p.team === t));
-    const results = this.allPlayers().map((p) => {
+    }
+    const results = ordered.map((p) => {
       const won = winner !== null && p.team === winner;
       const rewarded = !p.left && !p.guest && winner !== null;
       return {
@@ -741,7 +800,7 @@ export class Room extends DurableObject {
         coins: rewarded ? (won ? COINS_WIN : COINS_LOSE) : 0,
       };
     });
-    this.broadcast({ type: 'end', winnerTeam: winner, mode: this.settings.mode, players: results });
+    this.broadcast({ type: 'end', winnerTeam: winner, mode: this.settings.mode, reason, players: results });
     this.postResult(winner, results).catch((e) => console.log('postResult gagal', e && e.message));
     this.pushLobby();
     this.resetTimer = setTimeout(() => this.resetToLobby(), RESET_AFTER_END_MS);

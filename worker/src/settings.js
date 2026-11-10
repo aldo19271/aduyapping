@@ -38,6 +38,9 @@ export function sanitizeSettings(input, base, hostName) {
   const specOn = src.specOn === undefined ? (prev.specOn === undefined ? true : !!prev.specOn) : !!src.specOn;
   const specMax = clamp(src.specMax ?? prev.specMax, 1, 5, 5);
 
+  const timerOn = src.timerOn === undefined ? (prev.timerOn === undefined ? true : !!prev.timerOn) : !!src.timerOn;
+  const timerMin = clamp(src.timerMin ?? prev.timerMin, 1, 60, 5);
+
   let password = prev.password || '';
   if (typeof src.password === 'string' && src.password.length > 0) {
     password = cleanText(src.password, 20);
@@ -49,7 +52,7 @@ export function sanitizeSettings(input, base, hostName) {
 
   return {
     ok: true,
-    settings: { name, max, isPrivate, password, damage, hp, maxWords, mode, teamNames, specOn, specMax },
+    settings: { name, max, isPrivate, password, damage, hp, maxWords, mode, teamNames, specOn, specMax, timerOn, timerMin },
   };
 }
 
@@ -66,5 +69,7 @@ export function publicSettings(s) {
     teamNames: s.teamNames || ['Tim Merah', 'Tim Biru'],
     specOn: s.specOn !== false,
     specMax: s.specMax || 5,
+    timerOn: s.timerOn !== false,
+    timerMin: s.timerMin || 5,
   };
 }

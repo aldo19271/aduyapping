@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Coins, DoorOpen, Info, Lock, PlusSquare, ShoppingBag, Trophy, Settings, ShieldCheck } from 'lucide-react';
+import { Coins, DoorOpen, Info, Keyboard, Lock, PlusSquare, ShoppingBag, Trophy, Settings, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import Avatar from '../components/Avatar.jsx';
 import FabFan from '../components/FabFan.jsx';
@@ -41,10 +41,10 @@ function Tip() {
   );
 }
 
-function Tile({ icon: Icon, title, sub, onClick, locked, accent, i }) {
+function Tile({ icon: Icon, title, sub, onClick, locked, accent, i, cell }) {
   const [down, ripples] = useRipple();
   return (
-    <motion.div variants={itemVariants}>
+    <motion.div variants={itemVariants} className={cell}>
       <motion.button
         type="button"
         className={`tile ${accent ? 'accent' : ''} ${locked ? 'locked' : ''}`}
@@ -114,14 +114,15 @@ export default function Menu() {
         ) : null}
       </motion.header>
 
-      <motion.div className="tiles" variants={listVariants} initial="initial" animate="animate">
-        <Tile i={0} icon={PlusSquare} accent title="Create Room" sub="Buat room baru" onClick={() => actions.go('create')} />
-        <Tile i={1} icon={DoorOpen} title="Join Room" sub="Masuk ke room yang ada" onClick={() => actions.go('join')} />
-        <Tile i={2} icon={ShoppingBag} title="Shop" sub="Beli skin dengan koin" locked={!user} onClick={() => needLogin('shop')} />
-        <Tile i={3} icon={Trophy} title="Leaderboard" sub="Top 25 win dan koin" locked={!user} onClick={() => needLogin('leaderboard')} />
+      <motion.div className="tiles menu-grid" variants={listVariants} initial="initial" animate="animate">
+        <Tile i={0} cell="cell-create" icon={PlusSquare} accent title="Create Room" sub="Buat room baru" onClick={() => actions.go('create')} />
+        <Tile i={2} cell="cell-shop" icon={ShoppingBag} title="Shop" sub="Beli skin dengan koin" locked={!user} onClick={() => needLogin('shop')} />
+        <Tile i={3} cell="cell-board" icon={Trophy} title="Leaderboard" sub="Top 25 win dan koin" locked={!user} onClick={() => needLogin('leaderboard')} />
+        <Tile i={1} cell="cell-join" icon={DoorOpen} title="Join Room" sub="Masuk ke room yang ada" onClick={() => actions.go('join')} />
+        <Tile i={4} cell="cell-practice" icon={Keyboard} title="Practice" sub="Latihan mengetik sendiri" onClick={() => actions.go('practice')} />
         {user && user.admin ? (
           <div className="tile-wide">
-            <Tile i={4} icon={ShieldCheck} title="Admin" sub="Kelola akun dan mailbox feedback" onClick={() => actions.go('admin')} />
+            <Tile i={5} icon={ShieldCheck} title="Admin" sub="Kelola akun dan mailbox feedback" onClick={() => actions.go('admin')} />
           </div>
         ) : null}
       </motion.div>

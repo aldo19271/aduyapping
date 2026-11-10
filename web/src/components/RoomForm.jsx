@@ -15,6 +15,8 @@ export const DEFAULT_SETTINGS = {
   teamNames: ['Tim Merah', 'Tim Biru'],
   specOn: true,
   specMax: 5,
+  timerOn: true,
+  timerMin: 5,
 };
 
 function Row({ title, hint, children }) {
@@ -114,6 +116,25 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
             <Row title="Jumlah pemain" hint={value.mode === 'solo' ? 'Min 2, maks 8' : 'Min 2, maks 8 (dibagi 2 tim)'}>
               <Stepper value={value.max} min={2} max={8} onChange={(v) => set({ max: v })} />
             </Row>
+            <Row title="Timer" hint={value.timerOn === false ? 'Mati: tanpa batas waktu' : 'Waktu habis: poin (solo) / anggota hidup (team)'}>
+              <Switch checked={value.timerOn !== false} onChange={(v) => set({ timerOn: v })} label="Timer" />
+            </Row>
+            <AnimatePresence initial={false}>
+              {value.timerOn !== false && (
+                <motion.div
+                  key="timermin"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <Row title="Menit" hint="Min 1 menit, angka saja">
+                    <Stepper value={value.timerMin || 5} min={1} max={60} onChange={(v) => set({ timerMin: v })} />
+                  </Row>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <Row title="Room private" hint="Tetap tampil di daftar, tapi wajib password">
               <Switch checked={value.isPrivate} onChange={(v) => set({ isPrivate: v })} label="Room private" />
             </Row>
