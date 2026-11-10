@@ -107,7 +107,10 @@ export function ChatSheet({ title = 'Chat' }) {
                     transition={{ type: 'spring', stiffness: 420, damping: 26 }}
                   >
                     <div className="chat-bubble">
-                      {mine ? null : <b>{m.name}</b>}
+                      <b>
+                        {m.name}
+                        {m.spec ? ' · penonton' : ''}
+                      </b>
                       <span>{m.text}</span>
                     </div>
                   </motion.div>

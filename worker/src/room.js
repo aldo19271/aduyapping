@@ -119,11 +119,37 @@ export class Room extends DurableObject {
   }
 
   activePlayers() {
-    return [...this.players.values()].filter((p) => !p.left).sort((a, b) => a.order - b.order);
+    return [...this.players.values()].filter((p) => !p.left && !p.spec).sort((a, b) => a.order - b.order);
   }
 
   allPlayers() {
-    return [...this.players.values()].sort((a, b) => a.order - b.order);
+    return [...this.players.values()].filter((p) => !p.spec).sort((a, b) => a.order - b.order);
+  }
+
+  spectators() {
+    return [...this.players.values()].filter((p) => p.spec && !p.left).sort((a, b) => a.order - b.order);
+  }
+
+  teamCap() {
+    return Math.ceil(this.settings.max / 2);
+  }
+
+  /** Mode team: taruh pemain di tim yang lebih sedikit, di slot kosong pertama. */
+  placeInTeam(p) {
+    const cap = this.teamCap();
+    const others = this.activePlayers().filter((x) => x !== p && x.team > 0);
+    const count = (t) => others.filter((x) => x.team === t).length;
+    const order = count(1) <= count(2) ? [1, 2] : [2, 1];
+    for (const t of order) {
+      for (let sl = 0; sl < cap; sl++) {
+        if (!others.some((x) => x.team === t && x.slot === sl)) {
+          p.team = t;
+          p.slot = sl;
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   snapshot() {
@@ -133,6 +159,15 @@ export class Room extends DurableObject {
       hostId: this.hostId,
       settings: publicSettings(this.settings),
       players: this.activePlayers().map((p) => ({
+        id: p.id,
+        name: p.name,
+        skin: p.skin,
+        guest: p.guest,
+        connected: p.connected,
+        team: p.team,
+        slot: p.slot,
+      })),
+      spectators: this.spectators().map((p) => ({
         id: p.id,
         name: p.name,
         skin: p.skin,
@@ -170,6 +205,8 @@ export class Room extends DurableObject {
           return this.removePlayer(p.id);
         case 'update_settings':
           return this.onSettings(p, m);
+        case 'move':
+          return this.onMove(p, m);
         case 'start':
           return this.onStart(p);
         case 'ready':
@@ -216,15 +253,20 @@ export class Room extends DurableObject {
     if (existing && existing.left) {
       return this.send(ws, { type: 'error', code: 'in_game', message: 'Kamu sudah keluar dari pertandingan ini.' });
     }
-    if (this.status !== 'lobby') {
-      return this.send(ws, { type: 'error', code: 'in_game', message: 'Game di room ini sedang berjalan.' });
-    }
-
     const active = this.activePlayers();
-    if (active.length >= this.settings.max) {
-      return this.send(ws, { type: 'error', code: 'full', message: 'Room sudah penuh.' });
+    const full = active.length >= this.settings.max;
+    const asSpec = m.spectate === true || this.status !== 'lobby' || full;
+    if (asSpec) {
+      if (!this.settings.specOn) {
+        return this.send(ws, full && this.status === 'lobby'
+          ? { type: 'error', code: 'full', message: 'Room sudah penuh.' }
+          : { type: 'error', code: 'in_game', message: 'Game di room ini sedang berjalan.' });
+      }
+      if (this.spectators().length >= this.settings.specMax) {
+        return this.send(ws, { type: 'error', code: 'full', message: 'Slot spectator penuh.' });
+      }
     }
-    const isCreator = active.length === 0 && u.id === this.hostId;
+    const isCreator = !asSpec && active.length === 0 && u.id === this.hostId;
     if (this.settings.isPrivate && !isCreator) {
       if (typeof m.password !== 'string' || m.password.length === 0) {
         return this.send(ws, { type: 'error', code: 'password_required', message: 'Room ini memakai password.' });
@@ -233,9 +275,9 @@ export class Room extends DurableObject {
         return this.send(ws, { type: 'error', code: 'password_wrong', message: 'Password salah.' });
       }
     }
-    if (active.length === 0) this.hostId = u.id;
+    if (!asSpec && active.length === 0) this.hostId = u.id;
 
-    this.players.set(u.id, {
+    const np = {
       id: u.id,
       name: u.name,
       skin: u.skin,
@@ -254,9 +296,14 @@ export class Room extends DurableObject {
       targetId: null,
       left: false,
       graceTimer: null,
-    });
+      spec: asSpec,
+    };
+    if (asSpec) np.alive = false;
+    this.players.set(u.id, np);
+    if (!asSpec && this.settings.mode === 'team') this.placeInTeam(np);
     this.startPing();
     this.send(ws, { type: 'joined', youId: u.id, room: this.snapshot() });
+    if (asSpec && this.status !== 'lobby') this.sendGameStart(np, true);
     this.send(ws, { type: 'chat_history', messages: this.chat });
     this.broadcastRoom();
     this.pushLobby();
@@ -273,7 +320,26 @@ export class Room extends DurableObject {
         message: 'Batas pemain lebih kecil dari jumlah pemain yang sudah masuk.',
       });
     }
-    this.settings = res.settings;
+    const ns = res.settings;
+    if (ns.mode === 'team') {
+      const cap = Math.ceil(ns.max / 2);
+      if (this.activePlayers().some((x) => x.team > 0 && x.slot >= cap)) {
+        return this.send(p.ws, { type: 'error', code: 'settings', message: 'Pindahkan pemain ke slot depan dulu.' });
+      }
+    }
+    const specs = this.spectators().length;
+    if ((!ns.specOn && specs > 0) || specs > ns.specMax) {
+      return this.send(p.ws, { type: 'error', code: 'settings', message: 'Masih ada spectator di room ini.' });
+    }
+    const modeChanged = ns.mode !== this.settings.mode;
+    this.settings = ns;
+    if (modeChanged) {
+      for (const x of this.activePlayers()) {
+        x.team = 0;
+        x.slot = 0;
+      }
+      if (ns.mode === 'team') for (const x of this.activePlayers()) this.placeInTeam(x);
+    }
     this.send(p.ws, { type: 'settings_saved' });
     this.broadcastRoom();
     this.pushLobby();
@@ -285,7 +351,49 @@ export class Room extends DurableObject {
     if (ready.length < 2) {
       return this.send(p.ws, { type: 'error', code: 'min_players', message: 'Minimal 2 pemain untuk mulai.' });
     }
+    if (this.settings.mode === 'team' && (!ready.some((x) => x.team === 1) || !ready.some((x) => x.team === 2))) {
+      return this.send(p.ws, { type: 'error', code: 'min_players', message: 'Tiap tim minimal 1 pemain.' });
+    }
     this.begin();
+  }
+
+  /** Pindah slot/tim, atau pindah antara pemain dan spectator (hanya di lobi). */
+  onMove(p, m) {
+    if (this.status !== 'lobby') return;
+    const err = (message) => this.send(p.ws, { type: 'error', code: 'move', message });
+    if (m.to === 'spectator') {
+      if (p.spec) return;
+      if (p.id === this.hostId) return err('Ketua room tidak bisa jadi spectator.');
+      if (!this.settings.specOn) return err('Spectator dimatikan di room ini.');
+      if (this.spectators().length >= this.settings.specMax) return err('Slot spectator penuh.');
+      p.spec = true;
+      p.alive = false;
+      p.team = 0;
+      p.slot = 0;
+    } else if (m.to === 'player') {
+      const team = Number(m.team);
+      const slot = Number(m.slot);
+      const explicit = this.settings.mode === 'team' && (team === 1 || team === 2) && Number.isInteger(slot);
+      if (p.spec && this.activePlayers().length >= this.settings.max) return err('Slot pemain penuh.');
+      if (this.settings.mode === 'team') {
+        if (explicit) {
+          if (slot < 0 || slot >= this.teamCap()) return err('Slot tidak valid.');
+          if (this.activePlayers().some((x) => x !== p && x.team === team && x.slot === slot)) return err('Slot sudah terisi.');
+          p.team = team;
+          p.slot = slot;
+        } else if (p.spec && !this.placeInTeam(p)) {
+          return err('Slot pemain penuh.');
+        }
+      }
+      if (p.spec) {
+        p.spec = false;
+        p.alive = true;
+      }
+    } else {
+      return;
+    }
+    this.broadcastRoom();
+    this.pushLobby();
   }
 
   onReady(p) {
@@ -306,7 +414,7 @@ export class Room extends DurableObject {
     const now = Date.now();
     if (now - (p.lastChatAt || 0) < CHAT_GAP_MS) return;
     p.lastChatAt = now;
-    const msg = { type: 'chat', id: ++this.chatSeq, from: p.id, name: p.name, text, ts: now };
+    const msg = { type: 'chat', id: ++this.chatSeq, from: p.id, name: p.name, text, ts: now, spec: !!p.spec };
     this.chat.push(msg);
     if (this.chat.length > CHAT_KEEP) this.chat.shift();
     this.broadcast(msg);
@@ -360,6 +468,20 @@ export class Room extends DurableObject {
     p.ws = null;
     p.connected = false;
 
+    if (p.spec) {
+      this.players.delete(id);
+      if (ws) {
+        try {
+          ws.close(1000, 'bye');
+        } catch {
+          /* sudah tertutup */
+        }
+      }
+      this.broadcastRoom();
+      this.pushLobby();
+      return;
+    }
+
     const inGame = this.status === 'loading' || this.status === 'countdown' || this.status === 'playing';
     if (inGame) {
       p.left = true;
@@ -395,7 +517,14 @@ export class Room extends DurableObject {
     clearTimeout(this.readyTimer);
     clearTimeout(this.resetTimer);
     clearInterval(this.pingTimer);
-    for (const p of this.players.values()) clearTimeout(p.graceTimer);
+    for (const p of this.players.values()) {
+      clearTimeout(p.graceTimer);
+      try {
+        if (p.ws) p.ws.close(1000, 'bye');
+      } catch {
+        /* sudah tertutup */
+      }
+    }
     const code = this.code;
     this.resetAll();
     this.callLobby({ code, info: null });
@@ -409,8 +538,14 @@ export class Room extends DurableObject {
     this.pushLobby();
 
     const order = shuffle(this.activePlayers());
-    order.forEach((p, i) => {
-      p.team = (i % 2) + 1;
+    if (this.settings.mode === 'solo') {
+      this.slotCount = order.length;
+      order.forEach((p, i) => {
+        p.team = i + 1;
+        p.slot = i;
+      });
+    }
+    order.forEach((p) => {
       p.hp = this.settings.hp;
       p.alive = true;
       p.idx = 0;
@@ -419,7 +554,6 @@ export class Room extends DurableObject {
       p.targetId = null;
       p.lastWordAt = 0;
     });
-    for (const t of [1, 2]) order.filter((p) => p.team === t).forEach((p, i) => (p.slot = i));
 
     const { words } = await generateWords(this.env, this.settings.maxWords);
     if (run !== this.runId || this.status !== 'loading') return;
@@ -450,7 +584,13 @@ export class Room extends DurableObject {
       phase: this.status,
       words: this.words,
       idx: p.idx,
-      settings: { damage: this.settings.damage, hp: this.settings.hp },
+      settings: {
+        damage: this.settings.damage,
+        hp: this.settings.hp,
+        mode: this.settings.mode,
+        teamNames: this.settings.teamNames,
+      },
+      spectator: !!p.spec,
       youId: p.id,
       targetId: target ? target.id : null,
       players: this.gamePlayers(),
@@ -479,9 +619,17 @@ export class Room extends DurableObject {
     if (enemies.length === 0) return null;
     let t = p.targetId ? enemies.find((e) => e.id === p.targetId) : null;
     if (!t) {
-      // default: musuh yang berhadapan (slot sama), jika tidak ada ambil yang masih hidup
-      enemies.sort((a, b) => a.slot - b.slot);
-      t = enemies.find((e) => e.slot === p.slot) || enemies[p.slot % enemies.length];
+      if (this.settings.mode === 'solo') {
+        // solo: lawan terdekat searah putaran lingkaran
+        const n = this.slotCount || enemies.length + 1;
+        const dist = (e) => (e.slot - p.slot + n) % n;
+        enemies.sort((a, b) => dist(a) - dist(b));
+        t = enemies[0];
+      } else {
+        // team: musuh yang berhadapan (slot sama), jika tidak ada ambil yang masih hidup
+        enemies.sort((a, b) => a.slot - b.slot);
+        t = enemies.find((e) => e.slot === p.slot) || enemies[p.slot % enemies.length];
+      }
       if (p.targetId !== t.id) {
         p.targetId = t.id;
         this.send(p.ws, { type: 'target', id: t.id });
@@ -514,19 +662,17 @@ export class Room extends DurableObject {
   }
 
   checkWin() {
+    const act = this.activePlayers();
     if (this.status === 'loading' || this.status === 'countdown') {
-      const act = this.activePlayers();
-      if (!act.some((p) => p.team === 1) || !act.some((p) => p.team === 2)) {
+      if (new Set(act.map((p) => p.team)).size < 2) {
         this.abortToLobby('Ada pemain yang keluar sebelum game dimulai.');
       }
       return;
     }
     if (this.status !== 'playing') return;
-    const act = this.activePlayers();
-    const alive1 = act.some((p) => p.team === 1 && p.alive);
-    const alive2 = act.some((p) => p.team === 2 && p.alive);
-    if (alive1 && alive2) return;
-    this.endGame(alive1 ? 1 : alive2 ? 2 : null);
+    const aliveTeams = new Set(act.filter((p) => p.alive).map((p) => p.team));
+    if (aliveTeams.size >= 2) return;
+    this.endGame(aliveTeams.size === 1 ? [...aliveTeams][0] : null);
   }
 
   abortToLobby(message) {
@@ -546,8 +692,10 @@ export class Room extends DurableObject {
   }
 
   resetPlayer(p) {
-    p.team = 0;
-    p.slot = 0;
+    if (this.settings.mode !== 'team') {
+      p.team = 0;
+      p.slot = 0;
+    }
     p.hp = this.settings.hp;
     p.alive = true;
     p.idx = 0;
@@ -562,15 +710,20 @@ export class Room extends DurableObject {
     this.runId++;
 
     const mvp = {};
-    for (const t of [1, 2]) {
+    const solo = this.settings.mode === 'solo';
+    const pick = (list) => {
       let best = 0;
-      for (const p of this.activePlayers()) {
-        if (p.team === t && p.words > best) {
+      let who = null;
+      for (const p of list) {
+        if (p.words > best) {
           best = p.words;
-          mvp[t] = p.id;
+          who = p;
         }
       }
-    }
+      if (who) mvp[who.team] = who.id;
+    };
+    if (solo) pick(this.activePlayers());
+    else for (const t of [1, 2]) pick(this.activePlayers().filter((p) => p.team === t));
     const results = this.allPlayers().map((p) => {
       const won = winner !== null && p.team === winner;
       const rewarded = !p.left && !p.guest && winner !== null;
@@ -579,6 +732,7 @@ export class Room extends DurableObject {
         name: p.name,
         skin: p.skin,
         team: p.team,
+        slot: p.slot,
         words: p.words,
         isMvp: mvp[p.team] === p.id,
         won,
@@ -587,7 +741,7 @@ export class Room extends DurableObject {
         coins: rewarded ? (won ? COINS_WIN : COINS_LOSE) : 0,
       };
     });
-    this.broadcast({ type: 'end', winnerTeam: winner, players: results });
+    this.broadcast({ type: 'end', winnerTeam: winner, mode: this.settings.mode, players: results });
     this.postResult(winner, results).catch((e) => console.log('postResult gagal', e && e.message));
     this.pushLobby();
     this.resetTimer = setTimeout(() => this.resetToLobby(), RESET_AFTER_END_MS);
@@ -609,14 +763,15 @@ export class Room extends DurableObject {
 
   async postResult(winner, results) {
     if (!this.env.API_URL || winner === null) return;
+    const solo = this.settings.mode === 'solo';
     const players = results
       .filter((r) => !r.guest && !r.left)
-      .map((r) => ({ userId: r.id, team: r.team, words: r.words, isMvp: r.isMvp, won: r.won, coins: r.coins }));
+      .map((r) => ({ userId: r.id, team: solo ? (r.won ? 1 : 2) : r.team, words: r.words, isMvp: r.isMvp, won: r.won, coins: r.coins }));
     if (players.length === 0) return;
     const body = JSON.stringify({
       matchId: crypto.randomUUID(),
       roomName: this.settings.name,
-      winnerTeam: winner,
+      winnerTeam: solo ? 1 : winner,
       playerCount: results.length,
       players,
     });
@@ -659,6 +814,7 @@ export class Room extends DurableObject {
         players: this.activePlayers().length,
         max: this.settings.max,
         status: this.status === 'lobby' ? 'lobby' : 'playing',
+        spec: this.settings.specOn && this.spectators().length < this.settings.specMax,
       },
     });
   }

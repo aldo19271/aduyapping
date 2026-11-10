@@ -2299,3 +2299,56 @@ p {
 }
 .fab-item:nth-of-type(2) .fab-label { right: auto; left: 50%; top: -22px; transform: translateX(-50%); }
 .logout-btn { margin-top: 8px; border-color: #c0392b !important; color: #e0675b !important; }
+
+/* ---------- mode team/solo, spectator, FAB hamburger ---------- */
+:root { --team-red: #e5453a; --team-blue: #3b82f6; }
+.mode-pick { display: flex; flex-direction: column; gap: 8px; }
+.team-names { display: flex; flex-direction: column; gap: 10px; }
+.team-field.red input { border-color: var(--team-red); }
+.team-field.blue input { border-color: var(--team-blue); }
+.chip-mode { color: var(--orange); border-color: var(--orange); }
+
+.team-panel { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 18px; background: var(--panel); border: 2px solid var(--line); }
+.team-panel.red { border-color: var(--team-red); }
+.team-panel.blue { border-color: var(--team-blue); }
+.team-panel header, .spec-panel header { display: flex; align-items: center; gap: 8px; }
+.team-panel header i { width: 12px; height: 12px; border-radius: 50%; background: var(--team-red); }
+.team-panel.blue header i { background: var(--team-blue); }
+.team-panel h3, .spec-panel h3 { flex: 1; font-size: 15px; margin: 0; }
+.team-panel header small, .spec-panel header small { color: var(--dim); font-family: var(--mono); }
+.slot-empty {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 56px;
+  border: 2px dashed var(--line); border-radius: 14px; background: transparent; color: var(--dim);
+  font: inherit; font-weight: 700; cursor: pointer;
+}
+.slot-empty:not(:disabled):hover { border-color: var(--orange); color: var(--orange); }
+.slot-empty:disabled { opacity: 0.45; cursor: default; }
+.spec-panel { padding: 12px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.spec-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.spec-chip { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 6px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--orange); font-size: 12px; font-weight: 700; }
+.spec-empty { width: 44px; height: 40px; border-radius: 12px; border: 2px dashed var(--line); background: transparent; color: var(--dim); display: grid; place-items: center; cursor: pointer; }
+.spec-empty:not(:disabled):hover { border-color: var(--orange); color: var(--orange); }
+.spec-empty:disabled { opacity: 0.4; cursor: default; }
+
+.arena-wrap { display: contents; }
+.solo-stage { position: relative; flex: 1; min-height: 360px; }
+.solo-stage .pcard { position: absolute; width: 68px; transform: translate(-50%, -50%); padding: 6px 4px; z-index: 1; }
+.solo-stage .word-current { font-size: 28px; }
+.solo-stage .arena { position: absolute; left: 50%; top: 50%; width: 68%; height: 38%; min-height: 0; transform: translate(-50%, -50%); }
+.pcard.t1 { border-color: var(--team-red); }
+.pcard.t2 { border-color: var(--team-blue); }
+.pcard.target { border-color: var(--orange); }
+.team-chip.t1 { color: var(--team-red); border-color: var(--team-red); }
+.team-chip.t2 { color: var(--team-blue); border-color: var(--team-blue); }
+.spec-banner { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-weight: 700; }
+
+.chat-bubble b { display: block; }
+.chat-msg.me .chat-bubble b { color: var(--bg); opacity: 0.7; }
+
+.fab-main { overflow: visible; }
+.fab-pulse { position: absolute; inset: 0; border-radius: 50%; background: var(--orange); pointer-events: none; }
+.burger { position: relative; width: 26px; height: 20px; display: grid; place-items: center; }
+.burger i { position: absolute; left: 50%; width: 24px; height: 3px; border-radius: 2px; background: #0b0b0b; transform-origin: center; margin-left: -12px; }
+.burger i:nth-child(1) { top: 1px; }
+.burger i:nth-child(2) { top: 8.5px; }
+.burger i:nth-child(3) { top: 16px; }

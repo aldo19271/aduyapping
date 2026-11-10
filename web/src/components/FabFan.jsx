@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
 
 /**
  * FAB Fan: tombol bulat di pojok; saat ditekan, tombol-tombol lain
@@ -67,18 +66,32 @@ export default function FabFan({ items, radius = 92 }) {
               })
             : null}
         </AnimatePresence>
+        <motion.span className="fab-pulse" aria-hidden="true" animate={open ? { scale: 1, opacity: 0 } : { scale: [1, 1.5], opacity: [0.45, 0] }} transition={open ? { duration: 0.2 } : { duration: 2.2, repeat: Infinity, ease: 'easeOut' }} />
         <motion.button
           type="button"
           className="fab-main"
           aria-label={open ? 'Tutup menu' : 'Buka menu'}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          animate={{ rotate: open ? 135 : 0 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 18 }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.88, y: 3 }}
+          animate={{ rotate: open ? 180 : 0, scale: open ? 1.06 : 1, borderRadius: open ? '38%' : '50%' }}
+          transition={{ type: 'spring', stiffness: 360, damping: 16 }}
+          whileHover={{ scale: 1.1, rotate: open ? 180 : -6 }}
+          whileTap={{ scale: 0.86, y: 4 }}
         >
-          <Plus size={28} strokeWidth={3} />
+          <span className="burger" aria-hidden="true">
+            <motion.i
+              animate={open ? { y: 7.5, rotate: 45, scaleX: 1 } : { y: 0, rotate: 0, scaleX: [1, 1, 0.65, 1] }}
+              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { duration: 3.2, repeat: Infinity, delay: 0 }}
+            />
+            <motion.i
+              animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: [0.75, 1.08, 0.75] }}
+              transition={open ? { duration: 0.15 } : { duration: 3.2, repeat: Infinity, delay: 0.25 }}
+            />
+            <motion.i
+              animate={open ? { y: -7.5, rotate: -45, scaleX: 1 } : { y: 0, rotate: 0, scaleX: [1, 0.65, 1, 1] }}
+              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { duration: 3.2, repeat: Infinity, delay: 0.5 }}
+            />
+          </span>
         </motion.button>
       </div>
     </>

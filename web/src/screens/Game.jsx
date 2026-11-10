@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion';
-import { Coins, Crosshair, Crown, LogOut, Skull, Trophy } from 'lucide-react';
+import { Coins, Crosshair, Crown, Eye, LogOut, Skull, Trophy } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import { api } from '../lib/api.js';
 import Avatar from '../components/Avatar.jsx';
@@ -9,17 +9,19 @@ import { playSound } from '../lib/sound.js';
 import { ChatButton, ChatSheet } from '../components/Chat.jsx';
 import { Button, HpBar } from '../components/ui.jsx';
 
-function PlayerCard({ p, g, enemy, isTarget, onPick }) {
+function PlayerCard({ p, g, enemy, isTarget, onPick, style }) {
   const hit = g.lastHit && g.lastHit.to === p.id ? g.lastHit : null;
-  const Tag = enemy && p.alive ? motion.button : motion.div;
+  const pickable = enemy && p.alive && !g.spectator;
+  const Tag = pickable ? motion.button : motion.div;
   return (
     <Tag
-      type={enemy && p.alive ? 'button' : undefined}
+      type={pickable ? 'button' : undefined}
       layout
-      className={`pcard ${enemy ? 'enemy' : 'ally'} ${isTarget ? 'target' : ''} ${p.alive ? '' : 'dead'} ${p.id === g.youId ? 'you' : ''}`}
-      onClick={enemy && p.alive ? () => onPick(p.id) : undefined}
-      whileHover={enemy && p.alive ? { y: -4 } : undefined}
-      whileTap={enemy && p.alive ? { scale: 0.9 } : undefined}
+      style={style}
+      className={`pcard ${g.mode === 'team' ? `t${p.team}` : ''} ${enemy ? 'enemy' : 'ally'} ${isTarget ? 'target' : ''} ${p.alive ? '' : 'dead'} ${p.id === g.youId ? 'you' : ''}`}
+      onClick={pickable ? () => onPick(p.id) : undefined}
+      whileHover={pickable ? { y: -4 } : undefined}
+      whileTap={pickable ? { scale: 0.9 } : undefined}
       initial={{ opacity: 0, y: enemy ? -24 : 24, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: isTarget ? 1.06 : 1 }}
       transition={{ type: 'spring', stiffness: 380, damping: 20 }}
@@ -63,9 +65,16 @@ function PlayerCard({ p, g, enemy, isTarget, onPick }) {
 function Result({ g, onBack, user }) {
   const r = g.result;
   const me = r.players.find((p) => p.id === g.youId);
-  const myTeam = me ? me.team : 0;
-  const won = r.winnerTeam !== null && r.winnerTeam === myTeam;
+  const spec = !me;
+  const solo = r.mode === 'solo';
+  const myTeam = me ? me.team : 1;
+  const won = !spec && r.winnerTeam !== null && r.winnerTeam === myTeam;
   const rows = (team) => r.players.filter((p) => p.team === team);
+  const tname = (t) => (g.teamNames && g.teamNames[t - 1]) || `Tim ${t}`;
+  const winner = r.players.find((p) => p.team === r.winnerTeam);
+  const groups = solo
+    ? [...r.players].sort((a, b) => (a.team === r.winnerTeam ? -1 : b.team === r.winnerTeam ? 1 : b.words - a.words)).map((p) => p.team)
+    : [myTeam, myTeam === 1 ? 2 : 1];
 
   useEffect(() => {
     playSound(won ? 'win' : 'lose');
@@ -105,14 +114,26 @@ function Result({ g, onBack, user }) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.15 }}
         >
-          {r.winnerTeam === null ? 'Seri' : won ? 'Tim kamu menang' : 'Tim kamu kalah'}
+          {r.winnerTeam === null
+            ? 'Seri'
+            : spec
+              ? solo
+                ? `${winner ? winner.name : 'Pemenang'} menang`
+                : `${tname(r.winnerTeam)} menang`
+              : solo
+                ? won
+                  ? 'Kamu menang'
+                  : 'Kamu kalah'
+                : won
+                  ? 'Tim kamu menang'
+                  : 'Tim kamu kalah'}
         </motion.h2>
-        {[myTeam, myTeam === 1 ? 2 : 1].map((team) => {
+        {groups.map((team) => {
           const lost = r.winnerTeam !== null && r.winnerTeam !== team;
           return (
             <div className={`result-team ${lost ? 'lost' : ''}`} key={team}>
               <h4>
-                {team === myTeam ? 'Tim kamu' : 'Tim lawan'}
+                {solo ? (rows(team)[0] ? rows(team)[0].name : '') : spec ? tname(team) : team === myTeam ? `${tname(team)} (tim kamu)` : tname(team)}
                 {r.winnerTeam === team ? ' - menang' : lost ? ' - gugur' : ''}
               </h4>
               {rows(team).map((p, i) => (
@@ -236,9 +257,21 @@ export default function Game() {
 
   if (!g) return null;
   const me = g.players[g.youId];
+  const spec = !!g.spectator;
+  const solo = g.mode === 'solo';
   const myTeam = me ? me.team : 1;
-  const allies = g.order.map((id) => g.players[id]).filter((p) => p.team === myTeam);
-  const enemies = g.order.map((id) => g.players[id]).filter((p) => p.team !== myTeam);
+  const everyone = g.order.map((id) => g.players[id]);
+  const allies = everyone.filter((p) => p.team === myTeam);
+  const enemies = everyone.filter((p) => p.team !== myTeam);
+  const tname = (t) => (g.teamNames && g.teamNames[t - 1]) || `Tim ${t}`;
+  const enemyTeam = myTeam === 1 ? 2 : 1;
+  // solo: posisi melingkar, kamu (atau slot 0 untuk penonton) di bawah
+  const ringN = everyone.length;
+  const ringBase = me ? me.slot : 0;
+  const ringPos = (p) => {
+    const a = Math.PI / 2 + ((p.slot - ringBase + ringN) % ringN) * ((2 * Math.PI) / ringN);
+    return { left: `${50 + Math.cos(a) * 40}%`, top: `${50 + Math.sin(a) * 41}%` };
+  };
 
   const alive = !!(me && me.alive);
   const playing = g.phase === 'playing' && alive;
@@ -303,7 +336,11 @@ export default function Game() {
     >
 
       <div className="game-top">
-        <span className="chip">Tim lawan</span>
+        {solo ? (
+          <span className="chip">{spec ? 'Menonton' : 'Solo'}</span>
+        ) : (
+          <span className={`chip team-chip t${enemyTeam}`}>{spec ? tname(1) : tname(enemyTeam)}</span>
+        )}
         {combo >= 3 ? (
           <motion.span
             key={combo}
@@ -322,19 +359,36 @@ export default function Game() {
         </button>
       </div>
 
+      {solo ? null : (
       <div className="team-row">
-        {enemies.map((p) => (
+        {(spec ? allies : enemies).map((p) => (
           <PlayerCard
             key={p.id}
             p={p}
             g={g}
-            enemy
+            enemy={!spec}
             isTarget={g.targetId === p.id}
             onPick={(id) => playing && actions.setTarget(id)}
           />
         ))}
       </div>
 
+      )}
+
+      <div className={solo ? 'solo-stage' : 'arena-wrap'}>
+      {solo
+        ? everyone.map((p) => (
+            <PlayerCard
+              key={p.id}
+              p={p}
+              g={g}
+              enemy={p.id !== g.youId}
+              isTarget={g.targetId === p.id}
+              style={ringPos(p)}
+              onPick={(id) => playing && actions.setTarget(id)}
+            />
+          ))
+        : null}
       <div className="arena">
         <AnimatePresence mode="wait">
           {g.phase === 'loading' ? (
@@ -363,7 +417,11 @@ export default function Game() {
               />
               {g.countdown || ''}
             </motion.div>
-          ) : !alive && g.phase !== 'ended' ? (
+          ) : spec && g.phase === 'playing' ? (
+            <motion.p key="watch" className="arena-msg" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              Pertandingan berlangsung. Nikmati tontonannya.
+            </motion.p>
+          ) : !alive && !spec && g.phase !== 'ended' ? (
             <motion.p key="dead" className="arena-msg" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               Kamu sudah jatuh. Tonton pertandingan sampai selesai.
             </motion.p>
@@ -421,17 +479,30 @@ export default function Game() {
         </div>
       </div>
 
-      <div className="team-row">
-        {allies.map((p) => (
-          <PlayerCard key={p.id} p={p} g={g} enemy={false} isTarget={false} />
-        ))}
       </div>
+
+      {solo ? null : (
+        <div className="team-row">
+          {(spec ? enemies : allies).map((p) => (
+            <PlayerCard key={p.id} p={p} g={g} enemy={false} isTarget={false} />
+          ))}
+        </div>
+      )}
       <div className="game-top">
-        <span className="chip">Tim kamu</span>
+        {solo ? (
+          <span />
+        ) : (
+          <span className={`chip team-chip t${spec ? 2 : myTeam}`}>{spec ? tname(2) : `${tname(myTeam)} (kamu)`}</span>
+        )}
         <ChatButton variant="icon" />
       </div>
 
-      <motion.div className={`typebox ${bad ? 'bad' : ''}`} animate={boxCtl}>
+      {spec ? (
+        <p className="spec-banner">
+          <Eye size={16} strokeWidth={2.5} /> Kamu menonton pertandingan ini
+        </p>
+      ) : null}
+      <motion.div className={`typebox ${bad ? 'bad' : ''}`} animate={boxCtl} hidden={spec}>
         <input
           ref={inputRef}
           value={typed}

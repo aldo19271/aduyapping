@@ -48,6 +48,7 @@ export class Lobby extends DurableObject {
         players: r.players,
         max: r.max,
         status: r.status,
+        spec: !!r.spec,
       }));
   }
 
@@ -109,7 +110,8 @@ export class Lobby extends DurableObject {
           prev.isPrivate !== info.isPrivate ||
           prev.players !== info.players ||
           prev.max !== info.max ||
-          prev.status !== info.status;
+          prev.status !== info.status ||
+          prev.spec !== info.spec;
         rooms[code] = { ...info, code, updatedAt: Date.now() };
       } else {
         changed = !!prev;
@@ -205,6 +207,7 @@ export class Lobby extends DurableObject {
         players: 0,
         max: res.settings.max,
         status: 'lobby',
+        spec: res.settings.specOn,
         updatedAt: Date.now(),
       };
       await this.ctx.storage.put('rooms', rooms);

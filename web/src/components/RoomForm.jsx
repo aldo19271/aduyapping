@@ -11,6 +11,10 @@ export const DEFAULT_SETTINGS = {
   damage: 5,
   hp: 100,
   maxWords: 300,
+  mode: 'team',
+  teamNames: ['Tim Merah', 'Tim Biru'],
+  specOn: true,
+  specMax: 5,
 };
 
 function Row({ title, hint, children }) {
@@ -58,7 +62,53 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
               placeholder={namePlaceholder}
               onChange={(e) => set({ name: e.target.value })}
             />
-            <Row title="Jumlah pemain" hint="Min 2, maks 8">
+            <div className="mode-pick">
+              <span className="field-label">Mode</span>
+              <Tabs
+                id="roommode"
+                value={value.mode || 'team'}
+                onChange={(v) => set({ mode: v })}
+                tabs={[
+                  { id: 'team', label: 'Team' },
+                  { id: 'solo', label: 'Solo' },
+                ]}
+              />
+              <small className="note">
+                {value.mode === 'solo'
+                  ? 'Semua pemain saling bermusuhan. Posisi karakter melingkar.'
+                  : 'Dua tim saling serang. Pemain bisa pindah ke slot kosong di room.'}
+              </small>
+            </div>
+            <AnimatePresence initial={false}>
+              {value.mode !== 'solo' && (
+                <motion.div
+                  key="teamnames"
+                  className="team-names"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  {[0, 1].map((i) => (
+                    <Field
+                      key={i}
+                      className={`team-field ${i === 0 ? 'red' : 'blue'}`}
+                      label={i === 0 ? 'Nama tim merah' : 'Nama tim biru'}
+                      value={(value.teamNames || DEFAULT_SETTINGS.teamNames)[i]}
+                      maxLength={14}
+                      placeholder={DEFAULT_SETTINGS.teamNames[i]}
+                      onChange={(e) => {
+                        const names = [...(value.teamNames || DEFAULT_SETTINGS.teamNames)];
+                        names[i] = e.target.value;
+                        set({ teamNames: names });
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Row title="Jumlah pemain" hint={value.mode === 'solo' ? 'Min 2, maks 8' : 'Min 2, maks 8 (dibagi 2 tim)'}>
               <Stepper value={value.max} min={2} max={8} onChange={(v) => set({ max: v })} />
             </Row>
             <Row title="Room private" hint="Tetap tampil di daftar, tapi wajib password">
@@ -106,6 +156,25 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
             <Row title="Maks kata">
               <Stepper value={value.maxWords} min={50} max={500} step={50} onChange={(v) => set({ maxWords: v })} />
             </Row>
+            <Row title="Spectator" hint="Penonton di room, bisa dimatikan">
+              <Switch checked={value.specOn !== false} onChange={(v) => set({ specOn: v })} label="Spectator" />
+            </Row>
+            <AnimatePresence initial={false}>
+              {value.specOn !== false && (
+                <motion.div
+                  key="specmax"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <Row title="Slot spectator" hint="Min 1, maks 5">
+                    <Stepper value={value.specMax || 5} min={1} max={5} onChange={(v) => set({ specMax: v })} />
+                  </Row>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
