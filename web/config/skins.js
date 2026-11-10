@@ -12,7 +12,7 @@
 // Skin default (price 0) otomatis dimiliki semua akun yang login.
 // ============================================================
 
-export const DEFAULT_SKIN = 'mas_hitam';
+export const DEFAULT_SKIN = 'white';
 
 export const SKINS = [
   { id: 'white', name: 'Si White jir', price: 0, image: '/skins/white.png' },
