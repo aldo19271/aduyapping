@@ -95,7 +95,10 @@ export default function RoomForm({ value, onChange, namePlaceholder = 'Nama room
                       key={i}
                       className={`team-field ${i === 0 ? 'red' : 'blue'}`}
                       label={i === 0 ? 'Nama tim merah' : 'Nama tim biru'}
-                      value={(value.teamNames || DEFAULT_SETTINGS.teamNames)[i]}
+                      value={(() => {
+                        const n = (value.teamNames || DEFAULT_SETTINGS.teamNames)[i];
+                        return n === DEFAULT_SETTINGS.teamNames[i] ? '' : n;
+                      })()}
                       maxLength={14}
                       placeholder={DEFAULT_SETTINGS.teamNames[i]}
                       onChange={(e) => {

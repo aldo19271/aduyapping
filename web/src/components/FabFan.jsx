@@ -81,15 +81,15 @@ export default function FabFan({ items, radius = 92 }) {
           <span className="burger" aria-hidden="true">
             <motion.i
               animate={open ? { y: 7.5, rotate: 45, scaleX: 1 } : { y: 0, rotate: 0, scaleX: [1, 1, 0.65, 1] }}
-              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { duration: 3.2, repeat: Infinity, delay: 0 }}
+              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { default: { type: 'spring', stiffness: 420, damping: 18 }, scaleX: { duration: 3.2, repeat: Infinity, delay: 0 } }}
             />
             <motion.i
               animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: [0.75, 1.08, 0.75] }}
-              transition={open ? { duration: 0.15 } : { duration: 3.2, repeat: Infinity, delay: 0.25 }}
+              transition={open ? { duration: 0.15 } : { default: { duration: 0.15 }, scaleX: { duration: 3.2, repeat: Infinity, delay: 0.25 } }}
             />
             <motion.i
               animate={open ? { y: -7.5, rotate: -45, scaleX: 1 } : { y: 0, rotate: 0, scaleX: [1, 0.65, 1, 1] }}
-              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { duration: 3.2, repeat: Infinity, delay: 0.5 }}
+              transition={open ? { type: 'spring', stiffness: 420, damping: 18 } : { default: { type: 'spring', stiffness: 420, damping: 18 }, scaleX: { duration: 3.2, repeat: Infinity, delay: 0.5 } }}
             />
           </span>
         </motion.button>
