@@ -15,7 +15,7 @@
 export const DEFAULT_SKIN = 'mas_hitam';
 
 export const SKINS = [
-  { id: 'mas_hitam', name: 'Mas Hitam', price: 0, image: '/skins/hitam.png' },
+  { id: 'white', name: 'Si White jir', price: 0, image: '/skins/white.png' },
   { id: 'Amongus_jir', name: 'Amongus', price: 420, image: '/skins/amongus1.png' },
   { id: 'ajg_ngeri', name: 'Ajggg', price: 666, image: '/skins/ajg.png' },
   // Contoh skin dengan gambar sendiri (hapus tanda // untuk mengaktifkan):
