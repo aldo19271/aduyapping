@@ -7,7 +7,7 @@
 
 export const ABOUT = {
   name: 'AduYapping',
-  version: '1.1.0',
+  version: '3.0.0',
   tagline: 'cuman game yapping biasa ajg.',
   links: [
     { id: 'instagram', label: 'Instagram', sub: 'Ikuti di Instagram', url: 'https://www.instagram.com/apap09_', icon: 'camera' },
