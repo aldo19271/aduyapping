@@ -1,0 +1,369 @@
+/* =====================================================================
+   Tema DOODLE: coretan pensil di kertas bergaris, hanya hitam & putih.
+   Aktif jika <html data-theme="doodle"> (diatur di Pengaturan > Tampilan).
+   Hanya menimpa tampilan; struktur & fungsi layar tidak berubah.
+   ===================================================================== */
+html[data-theme='doodle'] {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #efefef;
+  --line: #111111;
+  --text: #111111;
+  --dim: #5a5a5a;
+  --orange: #111111;
+  --orange-2: #3a3a3a;
+  --red: #111111;
+  --ok: #111111;
+  --ok-green: #111111;
+  --team-red: #111111;
+  --team-blue: #111111;
+  --radius: 14px;
+  --ink: #111111;
+  --paper-line: #d6d6d6;
+  --sans: 'Patrick Hand', 'Comic Sans MS', 'Segoe Print', cursive;
+  --hand: 'Caveat', 'Patrick Hand', 'Comic Sans MS', cursive;
+  --mono: 'Patrick Hand', 'Comic Sans MS', cursive;
+  --wob-a: 16px 6px 14px 8px;
+  --wob-b: 7px 15px 6px 13px;
+  --hard: 3px 4px 0 var(--ink);
+  --hard-sm: 2px 3px 0 var(--ink);
+}
+
+/* ---------- kertas bergaris ---------- */
+html[data-theme='doodle'] body {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(to right, transparent 9px, #9a9a9a 9px, #9a9a9a 10.5px, transparent 10.5px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px);
+  background-attachment: fixed;
+  font-size: 18px;
+  line-height: 1.3;
+  letter-spacing: 0.1px;
+}
+
+html[data-theme='doodle'] .backdrop-fx {
+  display: none;
+}
+
+html[data-theme='doodle'] ::selection {
+  background: #111;
+  color: #fff;
+}
+
+/* ---------- huruf coretan ---------- */
+html[data-theme='doodle'] h1,
+html[data-theme='doodle'] h2,
+html[data-theme='doodle'] h3,
+html[data-theme='doodle'] h4,
+html[data-theme='doodle'] .topbar h2,
+html[data-theme='doodle'] .tile-text strong,
+html[data-theme='doodle'] .tab-text,
+html[data-theme='doodle'] .btn,
+html[data-theme='doodle'] .section-label,
+html[data-theme='doodle'] .setting-text strong,
+html[data-theme='doodle'] .row-text strong,
+html[data-theme='doodle'] .stat strong,
+html[data-theme='doodle'] .donut-center strong,
+html[data-theme='doodle'] .word-current {
+  font-family: var(--hand);
+  font-weight: 700;
+}
+
+html[data-theme='doodle'] h1 { font-size: 2.6em; line-height: 1.05; }
+html[data-theme='doodle'] h2,
+html[data-theme='doodle'] .topbar h2 { font-size: 1.9em; line-height: 1.1; }
+html[data-theme='doodle'] h3 { font-size: 1.5em; line-height: 1.15; }
+html[data-theme='doodle'] .tile-text strong { font-size: 1.55em; line-height: 1.05; }
+html[data-theme='doodle'] .btn { font-size: 1.45em; letter-spacing: 0.3px; }
+html[data-theme='doodle'] .btn.sm { font-size: 1.25em; }
+html[data-theme='doodle'] .tab-text { font-size: 1.3em; }
+html[data-theme='doodle'] .section-label { color: var(--ink); font-size: 1.3em; }
+html[data-theme='doodle'] .setting-text strong,
+html[data-theme='doodle'] .row-text strong { font-size: 1.35em; }
+html[data-theme='doodle'] .word-current { font-size: 2.6em; }
+
+/* garis bawah coretan pada judul layar */
+html[data-theme='doodle'] .topbar h2 {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='8' viewBox='0 0 120 8'%3E%3Cpath d='M1 5 Q8 0 15 5 T29 5 T43 5 T57 5 T71 5 T85 5 T99 5 T119 4' fill='none' stroke='%23111' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") left bottom / 120px 8px repeat-x;
+  padding-bottom: 8px;
+}
+
+/* ---------- kotak bergaya digambar tangan ---------- */
+html[data-theme='doodle'] .card,
+html[data-theme='doodle'] .tile,
+html[data-theme='doodle'] .setting-row,
+html[data-theme='doodle'] .room-item,
+html[data-theme='doodle'] .skin,
+html[data-theme='doodle'] .board-row,
+html[data-theme='doodle'] .result-card,
+html[data-theme='doodle'] .about-card,
+html[data-theme='doodle'] .stat,
+html[data-theme='doodle'] .mode-card,
+html[data-theme='doodle'] .adm-row,
+html[data-theme='doodle'] .mail,
+html[data-theme='doodle'] .team-panel,
+html[data-theme='doodle'] .spec-panel,
+html[data-theme='doodle'] .spec-banner,
+html[data-theme='doodle'] .player,
+html[data-theme='doodle'] .coins,
+html[data-theme='doodle'] .code-card,
+html[data-theme='doodle'] .sheet,
+html[data-theme='doodle'] .chat-sheet,
+html[data-theme='doodle'] .tabs,
+html[data-theme='doodle'] .fab-item {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: var(--wob-a);
+  box-shadow: var(--hard-sm);
+  color: var(--ink);
+}
+
+html[data-theme='doodle'] .tile { box-shadow: var(--hard); }
+html[data-theme='doodle'] .board-row:nth-child(even),
+html[data-theme='doodle'] .room-item:nth-child(even),
+html[data-theme='doodle'] .mail:nth-child(even) { border-radius: var(--wob-b); }
+html[data-theme='doodle'] .tile.accent,
+html[data-theme='doodle'] .board-row.top {
+  background: var(--ink);
+  color: #fff;
+}
+html[data-theme='doodle'] .tile.accent small,
+html[data-theme='doodle'] .tile.accent .tile-text small { color: #e6e6e6; }
+html[data-theme='doodle'] .tile.accent .tile-icon { background: #fff; color: var(--ink); }
+html[data-theme='doodle'] .tile-icon,
+html[data-theme='doodle'] .setting-icon {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 50% 44% 52% 46%;
+  color: var(--ink);
+}
+html[data-theme='doodle'] .tile:active,
+html[data-theme='doodle'] .mode-card:active,
+html[data-theme='doodle'] .btn:active {
+  box-shadow: 0 0 0 var(--ink);
+  transform: translate(3px, 4px);
+}
+
+/* ---------- tombol ---------- */
+html[data-theme='doodle'] .btn {
+  border: 2.5px solid var(--ink);
+  border-radius: var(--wob-a);
+  box-shadow: var(--hard);
+}
+html[data-theme='doodle'] .btn-primary { background: var(--ink); color: #fff; }
+html[data-theme='doodle'] .btn-ghost { background: #fff; color: var(--ink); border-color: var(--ink); }
+html[data-theme='doodle'] .btn-ghost:hover { background: var(--panel-2); border-color: var(--ink); }
+html[data-theme='doodle'] .btn-quiet { background: transparent; color: var(--ink); text-decoration: underline wavy; border-color: transparent; box-shadow: none; }
+html[data-theme='doodle'] .btn:disabled { opacity: 1; background: #fff; color: #8a8a8a; border-style: dashed; box-shadow: none; }
+html[data-theme='doodle'] .icon-btn,
+html[data-theme='doodle'] .settings-btn,
+html[data-theme='doodle'] .chat-btn {
+  background: #fff;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 50% 44% 52% 46%;
+  box-shadow: var(--hard-sm);
+}
+
+/* ---------- input ---------- */
+html[data-theme='doodle'] .field input,
+html[data-theme='doodle'] .field textarea,
+html[data-theme='doodle'] .stepper-input,
+html[data-theme='doodle'] .chat-form input,
+html[data-theme='doodle'] .typebox input {
+  background: #fff;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--wob-b);
+  font-family: var(--sans);
+  font-size: 1.05em;
+}
+html[data-theme='doodle'] .field input::placeholder,
+html[data-theme='doodle'] .typebox input::placeholder,
+html[data-theme='doodle'] .chat-form input::placeholder { color: #8a8a8a; }
+html[data-theme='doodle'] .field input:focus,
+html[data-theme='doodle'] .stepper-input:focus,
+html[data-theme='doodle'] .chat-form input:focus,
+html[data-theme='doodle'] .typebox input:focus {
+  outline: none;
+  box-shadow: var(--hard-sm);
+  border-color: var(--ink);
+}
+html[data-theme='doodle'] .field-label { color: var(--ink); font-size: 1.05em; }
+html[data-theme='doodle'] .field-hint,
+html[data-theme='doodle'] .dim,
+html[data-theme='doodle'] small { color: var(--dim); }
+html[data-theme='doodle'] .error { color: var(--ink); text-decoration: underline wavy; }
+
+/* ---------- switch, tab, stepper ---------- */
+html[data-theme='doodle'] .switch {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px 900px 999px 920px;
+}
+html[data-theme='doodle'] .switch .knob { background: #fff; border: 2.5px solid var(--ink); }
+html[data-theme='doodle'] .switch.on { background: var(--ink); border-color: var(--ink); }
+html[data-theme='doodle'] .switch.on .knob { background: #fff; border-color: #fff; }
+
+html[data-theme='doodle'] .tabs { padding: 4px; }
+html[data-theme='doodle'] .tab { color: var(--ink); border-radius: 8px; }
+html[data-theme='doodle'] .tab.active { color: #fff; }
+html[data-theme='doodle'] .tab-bg { background: var(--ink); border-radius: 8px 4px 9px 5px; }
+
+/* ---------- chip, badge, toast ---------- */
+html[data-theme='doodle'] .chips span,
+html[data-theme='doodle'] .chip {
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 999px 900px 999px 880px;
+}
+html[data-theme='doodle'] .badge,
+html[data-theme='doodle'] .adm-chip,
+html[data-theme='doodle'] .version-chip,
+html[data-theme='doodle'] .combo,
+html[data-theme='doodle'] .about-pill,
+html[data-theme='doodle'] .chat-badge {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+html[data-theme='doodle'] .badge.dim,
+html[data-theme='doodle'] .badge.fallen { background: #fff; color: var(--ink); border: 2px dashed var(--ink); }
+html[data-theme='doodle'] .toast {
+  background: #fff;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--wob-a);
+  box-shadow: var(--hard);
+}
+html[data-theme='doodle'] .tip { background: #fff; border: 2px solid var(--ink); border-left-width: 2px; border-radius: var(--wob-b); color: var(--ink); }
+html[data-theme='doodle'] .marquee { border-color: var(--ink); background: #fff; }
+html[data-theme='doodle'] .sticky-actions { background: transparent; }
+
+/* ---------- modal / sheet ---------- */
+html[data-theme='doodle'] .backdrop,
+html[data-theme='doodle'] .chat-layer,
+html[data-theme='doodle'] .fab-scrim { background: rgba(255, 255, 255, 0.72); }
+html[data-theme='doodle'] .profile-sheet { background: var(--ink); color: #fff; }
+
+/* ---------- FAB ---------- */
+html[data-theme='doodle'] .fab-main {
+  background: var(--ink);
+  color: #fff;
+  border: 2.5px solid var(--ink);
+  box-shadow: var(--hard);
+}
+html[data-theme='doodle'] .fab-pulse { background: transparent; border: 2px dashed var(--ink); }
+html[data-theme='doodle'] .burger i { background: #fff; }
+
+/* ---------- logo ---------- */
+html[data-theme='doodle'] .logo-mark {
+  background: #fff;
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 40% 56% 44% 52%;
+  box-shadow: var(--hard);
+}
+
+/* ---------- match: pensil di kertas ---------- */
+html[data-theme='doodle'] .hp {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 4px 6px 4px 7px;
+  overflow: hidden;
+}
+html[data-theme='doodle'] .hp-trail { background: repeating-linear-gradient(135deg, transparent 0 3px, #bdbdbd 3px 4px); }
+html[data-theme='doodle'] .hp-fill,
+html[data-theme='doodle'] .hp-fill.ally,
+html[data-theme='doodle'] .hp-fill.enemy {
+  background: repeating-linear-gradient(135deg, var(--ink) 0 2px, #fff 2px 5px);
+}
+html[data-theme='doodle'] .pcard-hp,
+html[data-theme='doodle'] .pcard-name { color: var(--ink); }
+html[data-theme='doodle'] .pcard.t2 { border-style: dashed; }
+html[data-theme='doodle'] .pcard.target {
+  border-color: var(--ink);
+  border-style: solid;
+  animation: none;
+}
+html[data-theme='doodle'] .pcard.dead { opacity: 0.5; }
+html[data-theme='doodle'] .crosshair { background: var(--ink); color: #fff; }
+html[data-theme='doodle'] .word-current .ok { color: var(--ink); text-decoration: underline; text-decoration-thickness: 3px; }
+html[data-theme='doodle'] .word-current .err { color: var(--ink); background: #d6d6d6; text-decoration: line-through; }
+html[data-theme='doodle'] .word-next { color: #6a6a6a; }
+html[data-theme='doodle'] .typebox.bad input { border-style: dashed; }
+html[data-theme='doodle'] .match-timer,
+html[data-theme='doodle'] .practice-timer { color: var(--ink); border-color: var(--ink); }
+html[data-theme='doodle'] .match-timer.low { animation: none; text-decoration: underline wavy; }
+html[data-theme='doodle'] .team-chip.t1,
+html[data-theme='doodle'] .team-chip.t2 { color: var(--ink); border-color: var(--ink); }
+html[data-theme='doodle'] .team-chip.t2 { border-style: dashed; }
+html[data-theme='doodle'] .team-panel.red,
+html[data-theme='doodle'] .team-panel.blue { border-color: var(--ink); }
+html[data-theme='doodle'] .team-panel.blue { border-style: dashed; }
+html[data-theme='doodle'] .team-panel header i { background: var(--ink); }
+html[data-theme='doodle'] .team-panel.blue header i { background: #fff; border: 2px solid var(--ink); }
+html[data-theme='doodle'] .team-field.red input,
+html[data-theme='doodle'] .team-field.blue input { border-color: var(--ink); }
+html[data-theme='doodle'] .team-field.blue input { border-style: dashed; }
+html[data-theme='doodle'] .slot-empty,
+html[data-theme='doodle'] .spec-empty { border: 2px dashed var(--ink); color: var(--ink); background: transparent; }
+html[data-theme='doodle'] .spec-chip { background: #fff; border: 2px solid var(--ink); }
+
+/* ---------- gambar, avatar & efek tetap hitam-putih ---------- */
+html[data-theme='doodle'] .avatar,
+html[data-theme='doodle'] .avatar *,
+html[data-theme='doodle'] .skin img,
+html[data-theme='doodle'] .pf-avatar,
+html[data-theme='doodle'] .burst,
+html[data-theme='doodle'] img {
+  filter: grayscale(1) contrast(1.12);
+}
+html[data-theme='doodle'] .avatar.plate { background: #fff; border: 2px solid var(--ink); border-radius: 50% 44% 52% 46%; }
+html[data-theme='doodle'] .float-dmg { color: var(--ink); }
+
+/* ---------- Practice & hasil ---------- */
+html[data-theme='doodle'] .stat { border-radius: var(--wob-b); }
+html[data-theme='doodle'] .donut-center strong { font-size: 2.4em; }
+html[data-theme='doodle'] .donut svg circle:first-child { stroke: #cfcfcf; }
+html[data-theme='doodle'] .donut-legend i { border: 2px solid var(--ink); }
+html[data-theme='doodle'] .result-row,
+html[data-theme='doodle'] .result-row.fallen { background: transparent; border-bottom: 1.5px dashed var(--ink); }
+html[data-theme='doodle'] .rank,
+html[data-theme='doodle'] .board-row.top .rank { background: var(--ink); color: #fff; }
+html[data-theme='doodle'] .board-bar { background: var(--ink); }
+html[data-theme='doodle'] .caret { background: var(--ink); }
+html[data-theme='doodle'] .conn.online i { background: var(--ink); }
+html[data-theme='doodle'] .conn.connecting i,
+html[data-theme='doodle'] .conn.offline i { background: #fff; border: 2px solid var(--ink); }
+
+/* ---------- sisa warna bawaan -> hitam putih ---------- */
+html[data-theme='doodle'] .logout-btn { border-color: var(--ink) !important; color: var(--ink) !important; }
+html[data-theme='doodle'] .adm-row.banned { border-color: var(--ink); border-style: dashed; box-shadow: var(--hard-sm); }
+html[data-theme='doodle'] .adm-chip.ban,
+html[data-theme='doodle'] .pf-ban.yes { background: var(--ink); color: #fff; }
+html[data-theme='doodle'] .live i { background: var(--ink); }
+html[data-theme='doodle'] .live i::after { border-color: var(--ink); }
+html[data-theme='doodle'] .hurt { border-color: var(--ink); background: rgba(0, 0, 0, 0.12); border-style: dashed; }
+html[data-theme='doodle'] .logo-about,
+html[data-theme='doodle'] .about-logo { background: #fff; border: 3px solid var(--ink); }
+html[data-theme='doodle'] .fab-main { box-shadow: var(--hard); }
+
+/* tile pendek di menu: teks sedikit lebih kecil supaya muat */
+html[data-theme='doodle'] .menu-grid .cell-shop .tile-text strong,
+html[data-theme='doodle'] .menu-grid .cell-board .tile-text strong { font-size: 1.25em; }
+html[data-theme='doodle'] .menu-grid .tile-text small { font-size: 0.8em; }
+html[data-theme='doodle'] .pf-avatar { background: #fff; border: 3px solid var(--ink); border-radius: 40% 56% 44% 52%; }
+
+/* ---------- hasil match, confetti, tab ---------- */
+html[data-theme='doodle'] .result { background: rgba(255, 255, 255, 0.88); }
+html[data-theme='doodle'] .confetti i { filter: grayscale(1); border: 1.5px solid var(--ink); background: #fff !important; }
+html[data-theme='doodle'] .confetti i:nth-child(3n) { background: var(--ink) !important; }
+html[data-theme='doodle'] .burst i { background: var(--ink) !important; filter: grayscale(1); }
+html[data-theme='doodle'] .tab-text { font-size: 1.15em; white-space: nowrap; }
+html[data-theme='doodle'] .menu-grid .tile-text strong { font-size: 1.3em; white-space: nowrap; }
+html[data-theme='doodle'] .menu-grid .cell-shop .tile-text strong,
+html[data-theme='doodle'] .menu-grid .cell-board .tile-text strong { font-size: 1.1em; }
+html[data-theme='doodle'] .board-row:not(.top) { background: #fff; }
+

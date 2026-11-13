@@ -2,7 +2,9 @@ import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
 import { AppProvider } from './store.jsx';
 import App from './App.jsx';
+import './lib/theme.js';
 import './styles.css';
+import './doodle.css';
 import { initUiSounds } from './lib/sound.js';
 import { FAVICON_SRC } from '../config/brand.js';
 
