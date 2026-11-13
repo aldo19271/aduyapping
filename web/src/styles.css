@@ -2385,4 +2385,4 @@ p {
 .center-text { text-align: center; }
 .sticky-actions.row2 { display: flex; flex-direction: row; gap: 10px; width: 100%; }
 .sticky-actions.row2 > * { flex: 1; }
-:root { --ok-green: #2fbf71; }
+:root { --ok-green: #2fbf71; --chart-ok: #22c55e; --chart-bad: #ef4444; }

@@ -203,8 +203,8 @@ function Result({ r, onAgain, onExit }) {
     <motion.div className="practice-result" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Donut
         segments={[
-          { label: 'Benar', value: okKeys, color: 'var(--ok-green, #2fbf71)' },
-          { label: 'Salah', value: r.wrongKeys, color: 'var(--team-red, #e5453a)' },
+          { label: 'Benar', value: okKeys, color: 'var(--chart-ok)' },
+          { label: 'Salah', value: r.wrongKeys, color: 'var(--chart-bad)' },
         ]}
       >
         <strong>{acc}%</strong>
@@ -212,10 +212,10 @@ function Result({ r, onAgain, onExit }) {
       </Donut>
       <div className="donut-legend">
         <span>
-          <i style={{ background: 'var(--ok-green, #2fbf71)' }} /> Benar
+          <i style={{ background: 'var(--chart-ok)' }} /> Benar
         </span>
         <span>
-          <i style={{ background: 'var(--team-red, #e5453a)' }} /> Salah
+          <i style={{ background: 'var(--chart-bad)' }} /> Salah
         </span>
       </div>
       <div className="stat-grid">
