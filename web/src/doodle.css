@@ -258,13 +258,7 @@ html[data-theme='doodle'] .fab-pulse { background: transparent; border: 2px dash
 html[data-theme='doodle'] .burger i { background: #fff; }
 
 /* ---------- logo ---------- */
-html[data-theme='doodle'] .logo-mark {
-  background: #fff;
-  color: var(--ink);
-  border: 3px solid var(--ink);
-  border-radius: 40% 56% 44% 52%;
-  box-shadow: var(--hard);
-}
+html[data-theme='doodle'] .logo-mark { background: #ff6a00; color: #0b0b0b; }
 
 /* ---------- match: pensil di kertas ---------- */
 html[data-theme='doodle'] .hp {
@@ -312,15 +306,11 @@ html[data-theme='doodle'] .spec-empty { border: 2px dashed var(--ink); color: va
 html[data-theme='doodle'] .spec-chip { background: #fff; border: 2px solid var(--ink); }
 
 /* ---------- gambar, avatar & efek tetap hitam-putih ---------- */
-html[data-theme='doodle'] .avatar,
-html[data-theme='doodle'] .avatar *,
-html[data-theme='doodle'] .skin img,
-html[data-theme='doodle'] .pf-avatar,
-html[data-theme='doodle'] .burst,
-html[data-theme='doodle'] img {
-  filter: grayscale(1) contrast(1.12);
+/* karakter/skin, logo brand, dan foto unggahan tetap berwarna normal */
+html[data-theme='doodle'] .burst {
+  filter: grayscale(1);
 }
-html[data-theme='doodle'] .avatar.plate { background: #fff; border: 2px solid var(--ink); border-radius: 50% 44% 52% 46%; }
+html[data-theme='doodle'] .avatar.plate { background: #e9e4dc; }
 html[data-theme='doodle'] .float-dmg { color: var(--ink); }
 
 /* ---------- Practice & hasil ---------- */
@@ -346,15 +336,13 @@ html[data-theme='doodle'] .pf-ban.yes { background: var(--ink); color: #fff; }
 html[data-theme='doodle'] .live i { background: var(--ink); }
 html[data-theme='doodle'] .live i::after { border-color: var(--ink); }
 html[data-theme='doodle'] .hurt { border-color: var(--ink); background: rgba(0, 0, 0, 0.12); border-style: dashed; }
-html[data-theme='doodle'] .logo-about,
-html[data-theme='doodle'] .about-logo { background: #fff; border: 3px solid var(--ink); }
 html[data-theme='doodle'] .fab-main { box-shadow: var(--hard); }
 
 /* tile pendek di menu: teks sedikit lebih kecil supaya muat */
 html[data-theme='doodle'] .menu-grid .cell-shop .tile-text strong,
 html[data-theme='doodle'] .menu-grid .cell-board .tile-text strong { font-size: 1.25em; }
 html[data-theme='doodle'] .menu-grid .tile-text small { font-size: 0.8em; }
-html[data-theme='doodle'] .pf-avatar { background: #fff; border: 3px solid var(--ink); border-radius: 40% 56% 44% 52%; }
+html[data-theme='doodle'] .pf-avatar { background: #e9e4dc; }
 
 /* ---------- hasil match, confetti, tab ---------- */
 html[data-theme='doodle'] .result { background: rgba(255, 255, 255, 0.88); }

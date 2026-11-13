@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LogOut, Pencil, Volume2, VolumeX } from 'lucide-react';
 import { useApp } from '../store.jsx';
-import { Button, Field, PasswordField, Screen, Switch, TopBar } from '../components/ui.jsx';
+import { Button, Field, Modal, PasswordField, Screen, Switch, TopBar } from '../components/ui.jsx';
 import { useSound } from '../lib/sound.js';
 import { useTheme } from '../lib/theme.js';
 
@@ -90,6 +90,7 @@ export default function SettingsScreen() {
   const { state, actions } = useApp();
   const [soundOn, setSoundOn] = useSound();
   const [theme, setTheme] = useTheme();
+  const [confirmOut, setConfirmOut] = useState(false);
   return (
     <Screen>
       <TopBar title="Pengaturan" onBack={() => actions.go('menu')} />
@@ -131,9 +132,20 @@ export default function SettingsScreen() {
         <Switch checked={theme === 'doodle'} onChange={(on) => setTheme(on ? 'doodle' : 'normal')} label="Tampilan doodle" />
       </motion.div>
       {state.user ? <AccountForm /> : null}
-      <Button variant="ghost" icon={LogOut} className="logout-btn" onClick={actions.logout}>
+      <Button variant="ghost" icon={LogOut} className="logout-btn" onClick={() => setConfirmOut(true)}>
         {state.user ? 'Log Out' : 'Log Out'}
       </Button>
+      <Modal open={confirmOut} onClose={() => setConfirmOut(false)} title="Yakin mau keluar?">
+        <p className="dim">Kamu akan keluar dari akun ini. Tekan Batal kalau tadi tidak sengaja kepencet.</p>
+        <div className="stack">
+          <Button icon={LogOut} onClick={() => { setConfirmOut(false); actions.logout(); }}>
+            Ya, Log Out
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirmOut(false)}>
+            Batal
+          </Button>
+        </div>
+      </Modal>
     </Screen>
   );
 }
