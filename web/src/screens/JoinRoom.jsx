@@ -12,10 +12,8 @@ export default function JoinRoom() {
   const prompt = state.passwordPrompt;
 
   const join = (room) => {
-    if (!room.spec) {
-      if (room.status !== 'lobby') return actions.toast('Game di room ini sedang berjalan.');
-      if (room.players >= room.max) return actions.toast('Room sudah penuh.');
-    }
+    if (room.status !== 'lobby') return actions.toast('Game di room ini sedang berjalan.');
+    if (!room.spec && room.players >= room.max) return actions.toast('Room sudah penuh.');
     if (room.isPrivate) {
       setPw('');
       actions.joinRoom(room.code, '');
@@ -47,7 +45,7 @@ export default function JoinRoom() {
                 layout
                 variants={itemVariants}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`room-item ${(closed || full) && !r.spec ? 'disabled' : ''}`}
+                className={`room-item ${closed || (full && !r.spec) ? 'disabled' : ''}`}
                 onClick={() => join(r)}
                 whileHover={{ x: 4 }}
                 whileTap={{ scale: 0.98 }}
@@ -57,7 +55,7 @@ export default function JoinRoom() {
                   <small>
                     Kode {r.code}
                     {closed ? ' - sedang bermain' : full ? ' - penuh' : ''}
-                    {(closed || full) && r.spec ? ' (bisa nonton)' : ''}
+                    {!closed && full && r.spec ? ' (bisa nonton)' : ''}
                   </small>
                 </span>
                 {r.isPrivate ? <Lock size={16} strokeWidth={2.5} className="dim" /> : null}

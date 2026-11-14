@@ -253,14 +253,15 @@ export class Room extends DurableObject {
     if (existing && existing.left) {
       return this.send(ws, { type: 'error', code: 'in_game', message: 'Kamu sudah keluar dari pertandingan ini.' });
     }
+    if (this.status !== 'lobby') {
+      return this.send(ws, { type: 'error', code: 'in_game', message: 'Game di room ini sedang berjalan.' });
+    }
     const active = this.activePlayers();
     const full = active.length >= this.settings.max;
-    const asSpec = m.spectate === true || this.status !== 'lobby' || full;
+    const asSpec = m.spectate === true || full;
     if (asSpec) {
       if (!this.settings.specOn) {
-        return this.send(ws, full && this.status === 'lobby'
-          ? { type: 'error', code: 'full', message: 'Room sudah penuh.' }
-          : { type: 'error', code: 'in_game', message: 'Game di room ini sedang berjalan.' });
+        return this.send(ws, { type: 'error', code: 'full', message: 'Room sudah penuh.' });
       }
       if (this.spectators().length >= this.settings.specMax) {
         return this.send(ws, { type: 'error', code: 'full', message: 'Slot spectator penuh.' });
@@ -303,7 +304,6 @@ export class Room extends DurableObject {
     if (!asSpec && this.settings.mode === 'team') this.placeInTeam(np);
     this.startPing();
     this.send(ws, { type: 'joined', youId: u.id, room: this.snapshot() });
-    if (asSpec && this.status !== 'lobby') this.sendGameStart(np, true);
     this.send(ws, { type: 'chat_history', messages: this.chat });
     this.broadcastRoom();
     this.pushLobby();
@@ -359,8 +359,8 @@ export class Room extends DurableObject {
 
   /** Pindah slot/tim, atau pindah antara pemain dan spectator (hanya di lobi). */
   onMove(p, m) {
-    if (this.status !== 'lobby') return;
     const err = (message) => this.send(p.ws, { type: 'error', code: 'move', message });
+    if (this.status !== 'lobby') return err('Pertandingan sudah dimulai, tidak bisa pindah posisi.');
     if (m.to === 'spectator') {
       if (p.spec) return;
       if (p.id === this.hostId) return err('Ketua room tidak bisa jadi spectator.');
@@ -563,7 +563,7 @@ export class Room extends DurableObject {
     if (run !== this.runId || this.status !== 'loading') return;
     this.words = words;
     this.refilling = false;
-    for (const p of this.activePlayers()) this.sendGameStart(p, false);
+    for (const p of [...this.activePlayers(), ...this.spectators()]) this.sendGameStart(p, false);
     this.readyTimer = setTimeout(() => this.startCountdown(run), READY_TIMEOUT_MS);
   }
 
@@ -873,7 +873,7 @@ export class Room extends DurableObject {
         players: this.activePlayers().length,
         max: this.settings.max,
         status: this.status === 'lobby' ? 'lobby' : 'playing',
-        spec: this.settings.specOn && this.spectators().length < this.settings.specMax,
+        spec: this.status === 'lobby' && this.settings.specOn && this.spectators().length < this.settings.specMax,
       },
     });
   }
