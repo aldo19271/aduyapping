@@ -14,8 +14,7 @@ export default function Donut({ segments, size = 190, stroke = 26, children }) {
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={segments.map((s) => `${s.label} ${s.value}`).join(', ')}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
         {segments.map((s, i) => {
-          const gap = segments.filter((x) => x.value > 0).length > 1 ? 4 : 0;
-          const len = Math.max(0, (s.value / total) * c - gap);
+          const len = (s.value / total) * c;
           const off = acc;
           acc += len;
           if (len <= 0) return null;
